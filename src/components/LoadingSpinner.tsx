@@ -17,7 +17,7 @@ const spinnerStyles = `
   }
 `;
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', color = '#007bff' }) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', color = 'var(--color-primary)' }) => {
   const sizeMap = { sm: 20, md: 32, lg: 48 };
   const diameter = sizeMap[size];
 
