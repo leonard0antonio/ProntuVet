@@ -23,28 +23,12 @@ export const GlobalLoading: React.FC<GlobalLoadingProps> = ({ isLoading, message
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: globalLoadingStyles }} />
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-        }}
-        role="status"
-        aria-live="polite"
-      >
+      <div className="global-loading" role="status" aria-live="polite">
         <svg
           width={48}
           height={48}
           viewBox="0 0 24 24"
-          style={{ animation: 'spin 1s linear infinite', color: '#007bff' }}
+          style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }}
         >
           <circle
             cx="12"
@@ -58,7 +42,7 @@ export const GlobalLoading: React.FC<GlobalLoadingProps> = ({ isLoading, message
             style={{ animation: 'dash 1.5s ease-in-out infinite' }}
           />
         </svg>
-        <p style={{ marginTop: '16px', color: '#333', fontSize: '16px' }}>{message}</p>
+        <p>{message}</p>
       </div>
     </>
   );

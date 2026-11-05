@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import InputMask from 'react-input-mask';
 import DOMPurify from 'dompurify';
 
@@ -19,7 +19,7 @@ export const BaseForm = <T extends object>({ schema, onSubmit, className = '' }:
     handleSubmit,
     formState: { errors },
   } = useForm<T>({
-    resolver: zResolver(schema),
+    resolver: zodResolver(schema),
     mode: 'onSubmit',
   });
 
