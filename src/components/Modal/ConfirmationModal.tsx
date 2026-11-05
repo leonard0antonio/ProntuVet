@@ -11,6 +11,30 @@ interface ConfirmationModalProps {
   variant?: 'danger' | 'warning' | 'info';
 }
 
+const variantStyles = {
+  danger: { borderColor: 'var(--color-danger)', buttonBg: 'var(--color-danger)', iconColor: 'var(--color-danger)', icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="15" y1="9" x2="9" y2="15" />
+      <line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+  )},
+  warning: { borderColor: 'var(--color-warning)', buttonBg: 'var(--color-warning)', iconColor: 'var(--color-warning)', icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  )},
+  info: { borderColor: 'var(--color-info)', buttonBg: 'var(--color-info)', iconColor: 'var(--color-info)', icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  )},
+};
+
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
@@ -72,81 +96,63 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const variantStyles = {
-    danger: { borderColor: '#dc3545', buttonBg: '#dc3545' },
-    warning: { borderColor: '#ffc107', buttonBg: '#ffc107' },
-    info: { borderColor: '#17a2b8', buttonBg: '#17a2b8' },
-  };
-
   const styles = variantStyles[variant];
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div
         ref={modalRef}
         tabIndex={-1}
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '24px',
-          maxWidth: '400px',
-          width: '90%',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-          border: `2px solid ${styles.borderColor}`,
-        }}
+        className="modal-content"
+        style={{ borderTop: `4px solid ${styles.borderColor}` }}
         onClick={e => e.stopPropagation()}
       >
-        <h2 id="modal-title" style={{ margin: '0 0 16px', color: '#333' }}>
-          {title}
-        </h2>
-        <p style={{ margin: '0 0 24px', color: '#666', lineHeight: 1.5 }}>
-          {message}
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <header className="modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: 'var(--radius-md)', 
+              background: styles.iconColor + '15', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: styles.iconColor,
+              flexShrink: 0
+            }}>
+              {styles.icon}
+            </div>
+            <h2 id="modal-title" className="modal-title">{title}</h2>
+          </div>
+          <button 
+            className="modal-close" 
+            onClick={onClose} 
+            aria-label="Fechar"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </header>
+        <div className="modal-body">
+          <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{message}</p>
+        </div>
+        <footer className="modal-footer">
           <button
             onClick={onClose}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#f8f9fa',
-              color: '#333',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="btn btn-secondary"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: styles.buttonBg,
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="btn btn-primary"
+            style={{ background: styles.buttonBg }}
           >
             {confirmText}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );

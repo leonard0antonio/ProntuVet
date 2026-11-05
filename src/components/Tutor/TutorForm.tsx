@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import InputMask from 'react-input-mask';
 import DOMPurify from 'dompurify';
 
@@ -27,7 +27,7 @@ export const TutorForm: React.FC = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<TutorFormValues>({
-    resolver: zResolver(tutorSchema),
+    resolver: zodResolver(tutorSchema),
     mode: 'onSubmit',
   });
 
@@ -37,175 +37,317 @@ export const TutorForm: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <h2>Cadastro de Tutor</h2>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div className="app-page-header">
         <div>
-          <label htmlFor='name'>Nome completo</label>
-          <input
-            id='name'
-            type='text'
-            {...register('name', { required: 'Nome é obrigatório' })} 
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.name && <p style={{ color: 'red' }}>{errors.name.message}</p>}
+          <h1 className="app-page-title">Cadastro de Tutor</h1>
+          <p className="app-page-subtitle">Preencha os dados do tutor para cadastrar no sistema</p>
         </div>
+      </div>
+      <div className="card">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="card-body">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="name" className="form-label form-label-required">Nome completo</label>
+                <input
+                                  id="name"
+                                  type="text"
+                                  autoComplete="name"
+                                  {...register('name', { required: 'Nome é obrigatório' })}
+                                  className={`form-input ${errors.name ? 'error' : ''}`}
+                                  placeholder="João da Silva"
+                                  aria-invalid={errors.name ? 'true' : 'false'}
+                                  aria-describedby={errors.name ? 'name-error' : undefined}
+                />
+                {errors.name && (
+                                  <p id="name-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.name.message}
+                                  </p>
+                )}
+              </div>
 
-        <div>
-          <label htmlFor='cpf'>CPF</label>
-          <InputMask
-            mask="000.000.000-00"
-            value={register('cpf')?.value || ''}
-            onAccept={val => {
-              if (val.length > 14) {
-                return val.slice(0, 14);
-              }
-              return val;
-            }}
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.cpf && <p style={{ color: 'red' }}>{errors.cpf.message}</p>}
-        </div>
+              <div className="form-group">
+                <label htmlFor="cpf" className="form-label form-label-required">CPF</label>
+                <InputMask
+                                  mask="000.000.000-00"
+                                  value={register('cpf')?.value || ''}
+                                  onAccept={val => {
+                                    if (val.length > 14) {
+                                      return val.slice(0, 14);
+                                    }
+                                    return val;
+                                  }}
+                                  className={`form-input ${errors.cpf ? 'error' : ''}`}
+                                  placeholder="000.000.000-00"
+                                  aria-invalid={errors.cpf ? 'true' : 'false'}
+                                  aria-describedby={errors.cpf ? 'cpf-error' : undefined}
+                />
+                {errors.cpf && (
+                                  <p id="cpf-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.cpf.message}
+                                  </p>
+                )}
+              </div>
+            </div>
 
-        <div>
-          <label htmlFor='phone'>Telefone</label>
-          <InputMask
-            mask="(00) 00000-0000"
-            value={register('phone')?.value || ''}
-            onAccept={val => {
-              if (val.length > 15) {
-                return val.slice(0, 15);
-              }
-              return val;
-            }}
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.phone && <p style={{ color: 'red' }}>{errors.phone.message}</p>}
-        </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="phone" className="form-label form-label-required">Telefone</label>
+                <InputMask
+                                  mask="(00) 00000-0000"
+                                  value={register('phone')?.value || ''}
+                                  onAccept={val => {
+                                    if (val.length > 15) {
+                                      return val.slice(0, 15);
+                                    }
+                                    return val;
+                                  }}
+                                  className={`form-input ${errors.phone ? 'error' : ''}`}
+                                  placeholder="(00) 00000-0000"
+                                  aria-invalid={errors.phone ? 'true' : 'false'}
+                                  aria-describedby={errors.phone ? 'phone-error' : undefined}
+                />
+                {errors.phone && (
+                                  <p id="phone-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.phone.message}
+                                  </p>
+                )}
+              </div>
 
-        <div>
-          <label htmlFor='email'>Email</label>
-          <input
-            id='email'
-            type='email'
-            {...register('email', { required: 'Email é obrigatório' })} 
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.email && <p style={{ color: 'red' }}>{errors.email.message}</p>}
-        </div>
+              <div className="form-group">
+                <label htmlFor="email" className="form-label form-label-required">Email</label>
+                <input
+                                  id="email"
+                                  type="email"
+                                  autoComplete="email"
+                                  {...register('email', { required: 'Email é obrigatório' })}
+                                  className={`form-input ${errors.email ? 'error' : ''}`}
+                                  placeholder="tutor@email.com"
+                                  aria-invalid={errors.email ? 'true' : 'false'}
+                                  aria-describedby={errors.email ? 'email-error' : undefined}
+                />
+                {errors.email && (
+                                  <p id="email-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.email.message}
+                                  </p>
+                )}
+              </div>
+            </div>
 
-        <div>
-          <label htmlFor='address'>Endereço</label>
-          <input
-            id='address'
-            type='text'
-            {...register('address', { required: 'Endereço é obrigatório' })} 
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.address && <p style={{ color: 'red' }}>{errors.address.message}</p>}
-        </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="address" className="form-label form-label-required">Endereço</label>
+                <input
+                                  id="address"
+                                  type="text"
+                                  autoComplete="street-address"
+                                  {...register('address', { required: 'Endereço é obrigatório' })}
+                                  className={`form-input ${errors.address ? 'error' : ''}`}
+                                  placeholder="Rua, número, complemento"
+                                  aria-invalid={errors.address ? 'true' : 'false'}
+                                  aria-describedby={errors.address ? 'address-error' : undefined}
+                />
+                {errors.address && (
+                                  <p id="address-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.address.message}
+                                  </p>
+                )}
+              </div>
 
-        <div>
-          <label htmlFor='city'>Cidade</label>
-          <input
-            id='city'
-            type='text'
-            {...register('city', { required: 'Cidade é obrigatória' })} 
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.city && <p style={{ color: 'red' }}>{errors.city.message}</p>}
-        </div>
+              <div className="form-group">
+                <label htmlFor="city" className="form-label form-label-required">Cidade</label>
+                <input
+                                  id="city"
+                                  type="text"
+                                  autoComplete="address-level2"
+                                  {...register('city', { required: 'Cidade é obrigatória' })}
+                                  className={`form-input ${errors.city ? 'error' : ''}`}
+                                  placeholder="São Paulo"
+                                  aria-invalid={errors.city ? 'true' : 'false'}
+                                  aria-describedby={errors.city ? 'city-error' : undefined}
+                />
+                {errors.city && (
+                                  <p id="city-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.city.message}
+                                  </p>
+                )}
+              </div>
+            </div>
 
-        <div>
-          <label htmlFor='zip'>CEP</label>
-          <InputMask
-            mask="00000000"
-            value={register('zip')?.value || ''}
-            onAccept={val => {
-              if (val.length > 8) {
-                return val.slice(0, 8);
-              }
-              return val;
-            }}
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.zip && <p style={{ color: 'red' }}>{errors.zip.message}</p>}
-        </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="zip" className="form-label form-label-required">CEP</label>
+                <InputMask
+                                  mask="00000000"
+                                  value={register('zip')?.value || ''}
+                                  onAccept={val => {
+                                    if (val.length > 8) {
+                                      return val.slice(0, 8);
+                                    }
+                                    return val;
+                                  }}
+                                  className={`form-input ${errors.zip ? 'error' : ''}`}
+                                  placeholder="00000000"
+                                  aria-invalid={errors.zip ? 'true' : 'false'}
+                                  aria-describedby={errors.zip ? 'zip-error' : undefined}
+                />
+                {errors.zip && (
+                                  <p id="zip-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.zip.message}
+                                  </p>
+                )}
+              </div>
 
-        <div>
-          <label htmlFor='tutorType'>Tipo de Tutor</label>
-          <select
-            id='tutorType'
-            {...register('tutorType', { required: 'Tipo é obrigatório' })} 
-            style={{ width: '100%', marginBottom: '10px' }}
-          >
-            <option value='veterinario'>Veterinário</option>
-            <option value='cliente'>Cliente</option>
-          </select>
-          {errors.tutorType && <p style={{ color: 'red' }}>{errors.tutorType.message}</p>}
-        </div>
+              <div className="form-group">
+                <label htmlFor="tutorType" className="form-label form-label-required">Tipo de Tutor</label>
+                <select
+                                  id="tutorType"
+                                  {...register('tutorType', { required: 'Tipo é obrigatório' })}
+                                  className={`form-select ${errors.tutorType ? 'error' : ''}`}
+                                  aria-invalid={errors.tutorType ? 'true' : 'false'}
+                                  aria-describedby={errors.tutorType ? 'tutorType-error' : undefined}
+                >
+                                  <option value="">Selecione</option>
+                                  <option value="veterinario">Veterinário</option>
+                                  <option value="cliente">Cliente</option>
+                </select>
+                {errors.tutorType && (
+                                  <p id="tutorType-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.tutorType.message}
+                                  </p>
+                )}
+              </div>
+            </div>
 
-        <div>
-          <label htmlFor='crmv'>CRMV</label>
-          <input
-            id='crmv'
-            type='text'
-            {...register('crmv', { required: 'CRMV é obrigatório' })} 
-            style={{ width: '100%', marginBottom: '10px' }}
-          />
-          {errors.crmv && <p style={{ color: 'red' }}>{errors.crmv.message}</p>}
-        </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="crmv" className="form-label form-label-required">CRMV</label>
+                <input
+                                  id="crmv"
+                                  type="text"
+                                  {...register('crmv', { required: 'CRMV é obrigatório' })}
+                                  className={`form-input ${errors.crmv ? 'error' : ''}`}
+                                  placeholder="1234567"
+                                  aria-invalid={errors.crmv ? 'true' : 'false'}
+                                  aria-describedby={errors.crmv ? 'crmv-error' : undefined}
+                />
+                {errors.crmv && (
+                                  <p id="crmv-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.crmv.message}
+                                  </p>
+                )}
+              </div>
 
-        <div>
-          <label htmlFor='password'>Senha</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              id='password'
-              type={showPassword ? 'text' : 'password'}
-              {...register('password', { required: 'Senha é obrigatória' })} 
-              style={{ width: '100%', marginBottom: '10px' }}
-            />
+              <div className="form-group">
+                <label htmlFor="password" className="form-label form-label-required">Senha</label>
+                <div className="input-wrapper">
+                                  <input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    autoComplete="new-password"
+                                    {...register('password', { required: 'Senha é obrigatória' })}
+                                    className={`form-input ${errors.password ? 'error' : ''}`}
+                                    placeholder="••••••••"
+                                    aria-invalid={errors.password ? 'true' : 'false'}
+                                    aria-describedby={errors.password ? 'password-error' : undefined}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="input-toggle"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                    aria-pressed={showPassword}
+                                  >
+                                    {showPassword ? (
+                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                        <line x1="1" y1="1" x2="23" y2="23" />
+                                      </svg>
+                                    ) : (
+                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                      </svg>
+                                    )}
+                                  </button>
+                </div>
+                {errors.password && (
+                                  <p id="password-error" className="form-error" role="alert">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="8" x2="12" y2="12" />
+                                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                    {errors.password.message}
+                                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="card-footer form-actions">
             <button
-              type='button'
-              onClick={() => setShowPassword(prev => !prev)}
-              style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
+              type="submit"
+              disabled={isSubmitting}
+              className="btn btn-primary"
             >
-              {showPassword ? '👁️' : '🔒'}
+              {isSubmitting ? (
+                <>
+                                  <span className="spinner" aria-hidden="true"></span>
+                                  Cadastrando...
+                </>
+              ) : (
+                'Cadastrar Tutor'
+              )}
             </button>
           </div>
-          {errors.password && <p style={{ color: 'red' }}>{errors.password.message}</p>}
-        </div>
-
-        <div>
-          <button
-            type='submit'
-            disabled={isSubmitting}
-            style={{
-              width: '100%',
-              padding: '10px',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.5 : 1,
-            }}
-          >
-            {isSubmitting ? (
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg
-                                  width={20}
-                                  height={20}
-                  viewBox="0 0 24 24"
-                  style={{ marginRight: '8px' }}
-                >
-                                  <circle cx={12} cy={12} r={10} stroke="currentColor" strokeWidth={4} fill="none" />
-                                  <path d="M4 12a8 8 0 018-8v8z" stroke="currentColor" strokeWidth={4} fill="none" />
-                </svg>
-                Carregando...
-              </span>
-            ) : (
-              'Cadastrar'
-            )}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

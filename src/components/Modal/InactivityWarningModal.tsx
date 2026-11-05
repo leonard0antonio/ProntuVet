@@ -68,77 +68,61 @@ export const InactivityWarningModal: React.FC<InactivityWarningModalProps> = ({
   const seconds = Math.floor((timeRemaining % 60000) / 1000);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1001,
-      }}
-      onClick={onExtend}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="inactivity-modal-title"
-    >
+    <div className="modal-overlay" onClick={onExtend} role="dialog" aria-modal="true" aria-labelledby="inactivity-modal-title">
       <div
         ref={modalRef}
         tabIndex={-1}
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '24px',
-          maxWidth: '400px',
-          width: '90%',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-          border: '2px solid #ffc107',
-        }}
+        className="modal-content"
+        style={{ borderTop: '4px solid var(--color-warning)' }}
         onClick={e => e.stopPropagation()}
       >
-        <h2 id="inactivity-modal-title" style={{ margin: '0 0 16px', color: '#333' }}>
-          Sessão prestes a expirar
-        </h2>
-        <p style={{ margin: '0 0 16px', color: '#666', lineHeight: 1.5 }}>
-          Você está inativo há algum tempo. Sua sessão expirará em
-          <strong> {minutes}:{seconds.toString().padStart(2, '0')}</strong>
-          por segurança.
-        </p>
-        <p style={{ margin: '0 0 24px', color: '#666', fontSize: '14px' }}>
-          Deseja continuar logado?
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <header className="modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: 'var(--radius-md)', 
+              background: 'var(--color-warning)15', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'var(--color-warning)',
+              flexShrink: 0
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <h2 id="inactivity-modal-title" className="modal-title">Sessão prestes a expirar</h2>
+          </div>
+        </header>
+        <div className="modal-body">
+          <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1rem' }}>
+            Você está inativo há algum tempo. Sua sessão expirará em
+            <strong style={{ color: 'var(--text-primary)', fontSize: '1.125rem' }}> {minutes}:{seconds.toString().padStart(2, '0')}</strong>
+            por segurança.
+          </p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            Deseja continuar logado?
+          </p>
+        </div>
+        <footer className="modal-footer">
           <button
             onClick={onLogout}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="btn btn-danger"
           >
             Sair agora
           </button>
           <button
             onClick={onExtend}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#ffc107',
-              color: '#333',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="btn btn-warning"
+                      style={{ background: 'var(--color-warning)', color: 'var(--text-primary)' }}
           >
             Continuar logado
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );
