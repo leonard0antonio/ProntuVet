@@ -1,45 +1,90 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useLogin } from '../../hooks/useApi';
 import { useToast } from '../../components/Toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../Back-end/src/features/auth';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(6, { message: 'Senha deve ter ao menos 6 caracteres' }),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+const signUpSchema = loginSchema.extend({
+  fullName: z.string().trim().min(2, { message: 'Informe seu nome completo' }),
+  clinicName: z.string().trim().min(2, { message: 'Informe o nome da clínica' }),
+  password: z.string().min(8, { message: 'A senha deve ter ao menos 8 caracteres' }),
+});
+
+type LoginFormValues = {
+  email: string;
+  password: string;
+  fullName?: string;
+  clinicName?: string;
+};
 
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
-  const { mutate: login, isLoading: isSubmitting } = useLogin();
+  const { signIn, signUp } = useAuth();
 
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
     mode: 'onSubmit',
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    setIsSubmitting(true);
     try {
-        await login(data as { email: string; password: string });
-      showSuccess('Login realizado com sucesso!', 'Bem-vindo ao ProntuVet');
+      if (isSignUp) {
+        const result = signUpSchema.safeParse(data);
+        if (!result.success) {
+          result.error.issues.forEach(issue => {
+            const field = issue.path[0];
+            if (field === 'email' || field === 'password' || field === 'fullName' || field === 'clinicName') {
+              setError(field, { type: 'manual', message: issue.message });
+            }
+          });
+          return;
+        }
+
+        await signUp(result.data);
+        showSuccess('Clínica cadastrada com sucesso!', 'Sua conta já está pronta para uso');
+      } else {
+        const result = loginSchema.safeParse(data);
+        if (!result.success) {
+          result.error.issues.forEach(issue => {
+            const field = issue.path[0];
+            if (field === 'email' || field === 'password') {
+              setError(field, { type: 'manual', message: issue.message });
+            }
+          });
+          return;
+        }
+
+        await signIn(result.data.email, result.data.password);
+        showSuccess('Login realizado com sucesso!', 'Bem-vindo ao ProntuVet');
+      }
       navigate('/');
     } catch (error) {
-      const apiError = error as { status?: number; message?: string };
-      if (apiError.status === 401) {
+      if (error instanceof Error && error.message === 'Invalid login credentials') {
         showError('Credenciais inválidas', 'Verifique seu email e senha');
       } else {
-        showError('Erro ao fazer login', 'Tente novamente mais tarde');
+        showError(
+          isSignUp ? 'Erro ao cadastrar clínica' : 'Erro ao fazer login',
+          error instanceof Error ? error.message : 'Tente novamente mais tarde',
+        );
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -55,10 +100,44 @@ export const Login: React.FC = () => {
                 <path d="M2 12l10 5 10-5" />
               </svg>
             </div>
-            <h1 className="login-title">Bem-vindo ao ProntuVet</h1>
-            <p className="login-subtitle">Faça login para acessar o sistema</p>
+            <h1 className="login-title">{isSignUp ? 'Cadastre sua clínica' : 'Bem-vindo ao ProntuVet'}</h1>
+            <p className="login-subtitle">
+              {isSignUp ? 'Crie sua conta de acesso para começar' : 'Faça login para acessar o sistema'}
+            </p>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="login-form">
+            {isSignUp && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="fullName" className="form-label form-label-required">Seu nome</label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    autoComplete="name"
+                    {...register('fullName', { required: 'Informe seu nome completo' })}
+                    className={`form-input ${errors.fullName ? 'error' : ''}`}
+                    placeholder="Nome do responsável"
+                    aria-invalid={errors.fullName ? 'true' : 'false'}
+                    aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+                  />
+                  {errors.fullName && <p id="fullName-error" className="form-error" role="alert">{errors.fullName.message}</p>}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="clinicName" className="form-label form-label-required">Nome da clínica</label>
+                  <input
+                    id="clinicName"
+                    type="text"
+                    autoComplete="organization"
+                    {...register('clinicName', { required: 'Informe o nome da clínica' })}
+                    className={`form-input ${errors.clinicName ? 'error' : ''}`}
+                    placeholder="Clínica Veterinária"
+                    aria-invalid={errors.clinicName ? 'true' : 'false'}
+                    aria-describedby={errors.clinicName ? 'clinicName-error' : undefined}
+                  />
+                  {errors.clinicName && <p id="clinicName-error" className="form-error" role="alert">{errors.clinicName.message}</p>}
+                </div>
+              </>
+            )}
             <div className="form-group">
               <label htmlFor="email" className="form-label form-label-required">Email</label>
               <div className="input-wrapper">
@@ -100,7 +179,13 @@ export const Login: React.FC = () => {
                                   id="password"
                                   type={showPassword ? 'text' : 'password'}
                                   autoComplete="current-password"
-                                  {...register('password', { required: 'Senha é obrigatória' })}
+                                  {...register('password', {
+                                    required: 'Senha é obrigatória',
+                                    minLength: {
+                                      value: isSignUp ? 8 : 6,
+                                      message: `Senha deve ter ao menos ${isSignUp ? 8 : 6} caracteres`,
+                                    },
+                                  })}
                                   className={`form-input ${errors.password ? 'error' : ''}`}
                                   placeholder="••••••••"
                                   aria-invalid={errors.password ? 'true' : 'false'}
@@ -148,14 +233,26 @@ export const Login: React.FC = () => {
                 {isSubmitting ? (
                                   <>
                                     <span className="spinner" aria-hidden="true"></span>
-                                    Entrando...
+                                    {isSignUp ? 'Cadastrando...' : 'Entrando...'}
                                   </>
                 ) : (
-                                  'Entrar no Sistema'
+                                  isSignUp ? 'Criar Conta' : 'Entrar no Sistema'
                 )}
               </button>
             </div>
           </form>
+          <div className="login-footer">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setIsSignUp(current => !current);
+                clearErrors();
+              }}
+            >
+              {isSignUp ? 'Já tem cadastro? Entrar' : 'Cadastrar uma clínica'}
+            </button>
+          </div>
           <div className="login-footer">
             <p>ProntuVet - Sistema de Prontuário Eletrônico Veterinário</p>
           </div>

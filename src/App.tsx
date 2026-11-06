@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { ConfirmationModalProvider } from './components/Modal/ConfirmationModalProvider';
 import { ToastProvider } from './components/Toast';
@@ -13,19 +13,12 @@ import { ProntuarioForm } from './components/Prontuario/ProntuarioForm';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import './App.css';
 import { InactivityWarningModal } from './components/Modal/InactivityWarningModal';
+import { AuthProvider, useAuth } from '../Back-end/src/features/auth';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    const user = localStorage.getItem('auth_user');
-    setIsAuthenticated(!!token && !!user);
-    setIsLoading(false);
-  }, []);
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
         <LoadingSpinner size="lg" />
@@ -33,7 +26,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
@@ -42,7 +35,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const AppContent: React.FC = () => {
   const { showWarning, hideWarning, isWarningOpen, timeRemaining } = useInactivityWarning();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   useInactivityTimeout({
     timeout: 10 * 60 * 1000,
@@ -53,21 +53,17 @@ const AppContent: React.FC = () => {
           hideWarning();
         },
         () => {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          window.location.href = '/login';
+          void logout();
         }
       );
     },
     onTimeout: () => {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      window.location.href = '/login';
+      void logout();
     },
   });
 
-  const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
-  const userInitials = user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U';
+  const userName = user?.user_metadata.full_name ?? 'Usuário';
+  const userInitials = userName.split(' ').map(name => name[0]).join('').toUpperCase() || 'U';
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: (
@@ -104,9 +100,7 @@ const AppContent: React.FC = () => {
         isOpen={isWarningOpen}
         onExtend={() => hideWarning()}
         onLogout={() => {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          window.location.href = '/login';
+          void logout();
         }}
         timeRemaining={timeRemaining}
       />
@@ -157,8 +151,8 @@ const AppContent: React.FC = () => {
                           {userInitials}
                         </div>
                         <div className="app-user-details">
-                          <span className="app-user-name">{user.name || 'Usuário'}</span>
-                          <span className="app-user-role">{user.role === 'veterinario' ? 'Veterinário' : 'Cliente'}</span>
+                          <span className="app-user-name">{userName}</span>
+                          <span className="app-user-role">Veterinário</span>
                         </div>
                       </div>
                       <button
@@ -200,11 +194,13 @@ const App: React.FC = () => {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
-        <ConfirmationModalProvider>
-          <ErrorBoundary>
-            <AppContent />
-          </ErrorBoundary>
-        </ConfirmationModalProvider>
+        <AuthProvider>
+          <ConfirmationModalProvider>
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
+          </ConfirmationModalProvider>
+        </AuthProvider>
       </ToastProvider>
     </BrowserRouter>
   );

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,15 +13,11 @@ const tutorSchema = z.object({
   address: z.string().min(1, { message: 'Endereço é obrigatório' }),
   city: z.string().min(1, { message: 'Cidade é obrigatória' }),
   zip: z.string().refine(val => /^\d{8}$/.test(val), { message: 'CEP inválido (deve ter 8 dígitos)' }),
-  tutorType: z.enum(['veterinario', 'cliente'], { message: 'Tipo inválido' }),
-  crmv: z.string().refine(val => /^\d{7}$/.test(val), { message: 'CRMV deve conter 7 dígitos' }),
-  password: z.string().min(6, { message: 'Senha deve ter ao menos 6 caracteres' }),
 });
 
 type TutorFormValues = z.infer<typeof tutorSchema>;
 
 export const TutorForm: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
   const { showSuccess, showError } = useToast();
   const { mutate: createTutor, isLoading: isSubmitting } = useCreateTutor();
 
@@ -38,7 +33,7 @@ export const TutorForm: React.FC = () => {
 
   const onSubmit = async (data: TutorFormValues) => {
     try {
-      await createTutor(data);
+      await createTutor({ ...data, tutorType: 'cliente' });
       showSuccess('Tutor cadastrado com sucesso!', 'O tutor foi adicionado ao sistema');
     } catch (error) {
       const apiError = error as { status?: number; message?: string; errors?: Record<string, string[]> };
@@ -267,100 +262,6 @@ export const TutorForm: React.FC = () => {
                 )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="tutorType" className="form-label form-label-required">Tipo de Tutor</label>
-                <select
-                                  id="tutorType"
-                                  {...register('tutorType', { required: 'Tipo é obrigatório' })}
-                                  className={`form-select ${errors.tutorType ? 'error' : ''}`}
-                                  aria-invalid={errors.tutorType ? 'true' : 'false'}
-                                  aria-describedby={errors.tutorType ? 'tutorType-error' : undefined}
-                >
-                                  <option value="">Selecione</option>
-                                  <option value="veterinario">Veterinário</option>
-                                  <option value="cliente">Cliente</option>
-                </select>
-                {errors.tutorType && (
-                                  <p id="tutorType-error" className="form-error" role="alert">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                      <circle cx="12" cy="12" r="10" />
-                                      <line x1="12" y1="8" x2="12" y2="12" />
-                                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                                    </svg>
-                                    {errors.tutorType.message}
-                                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="crmv" className="form-label form-label-required">CRMV</label>
-                <input
-                                  id="crmv"
-                                  type="text"
-                                  {...register('crmv', { required: 'CRMV é obrigatório' })}
-                                  className={`form-input ${errors.crmv ? 'error' : ''}`}
-                                  placeholder="1234567"
-                                  aria-invalid={errors.crmv ? 'true' : 'false'}
-                                  aria-describedby={errors.crmv ? 'crmv-error' : undefined}
-                />
-                {errors.crmv && (
-                                  <p id="crmv-error" className="form-error" role="alert">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                      <circle cx="12" cy="12" r="10" />
-                                      <line x1="12" y1="8" x2="12" y2="12" />
-                                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                                    </svg>
-                                    {errors.crmv.message}
-                                  </p>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="password" className="form-label form-label-required">Senha</label>
-                <div className="input-wrapper">
-                                  <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    autoComplete="new-password"
-                                    {...register('password', { required: 'Senha é obrigatória' })}
-                                    className={`form-input ${errors.password ? 'error' : ''}`}
-                                    placeholder="••••••••"
-                                    aria-invalid={errors.password ? 'true' : 'false'}
-                                    aria-describedby={errors.password ? 'password-error' : undefined}
-                                  />
-                                  <button
-                                    type="button"
-                                    className="input-toggle"
-                                    onClick={() => setShowPassword(prev => !prev)}
-                                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                                    aria-pressed={showPassword}
-                                  >
-                                    {showPassword ? (
-                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                                        <line x1="1" y1="1" x2="23" y2="23" />
-                                      </svg>
-                                    ) : (
-                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                        <circle cx="12" cy="12" r="3" />
-                                      </svg>
-                                    )}
-                                  </button>
-                </div>
-                {errors.password && (
-                                  <p id="password-error" className="form-error" role="alert">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                      <circle cx="12" cy="12" r="10" />
-                                      <line x1="12" y1="8" x2="12" y2="12" />
-                                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                                    </svg>
-                                    {errors.password.message}
-                                  </p>
-                )}
-              </div>
             </div>
           </div>
           <div className="card-footer form-actions">
