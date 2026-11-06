@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import InputMask from 'react-input-mask';
-import DOMPurify from 'dompurify';
 
 export type BaseFormProps<T> = {
   schema: z.ZodSchema<T>;

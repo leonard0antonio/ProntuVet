@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { ConfirmationModalProvider } from './components/Modal/ConfirmationModalProvider';
+import { ToastProvider } from './components/Toast';
 import { GlobalLoading } from './components/GlobalLoading';
 import { useInactivityTimeout } from './hooks/useInactivityTimeout';
 import { useInactivityWarning } from './hooks/useInactivityWarning';
@@ -10,8 +11,8 @@ import { Dashboard } from './components/Dashboard/Dashboard';
 import { TutorForm } from './components/Tutor/TutorForm';
 import { ProntuarioForm } from './components/Prontuario/ProntuarioForm';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { InactivityWarningModal } from './components/Modal/InactivityWarningModal';
 import './App.css';
+import { InactivityWarningModal } from './components/Modal/InactivityWarningModal';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,8 +41,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const AppContent: React.FC = () => {
-  const [isGlobalLoading, setIsGlobalLoading] = useState(false);
-  const { showWarning, hideWarning, isWarningOpen, timeRemaining, InactivityWarningModal } = useInactivityWarning();
+  const { showWarning, hideWarning, isWarningOpen, timeRemaining } = useInactivityWarning();
   const location = useLocation();
 
   useInactivityTimeout({
@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
   });
 
   const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
-  const userInitials = user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+  const userInitials = user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U';
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: (
@@ -99,7 +99,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      <GlobalLoading isLoading={isGlobalLoading} />
+        <GlobalLoading isLoading={false} />
       <InactivityWarningModal
         isOpen={isWarningOpen}
         onExtend={() => hideWarning()}
@@ -198,12 +198,14 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <ConfirmationModalProvider>
-        <ErrorBoundary>
-          <AppContent />
-        </ErrorBoundary>
-      </ConfirmationModalProvider>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ToastProvider>
+        <ConfirmationModalProvider>
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
+        </ConfirmationModalProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 };

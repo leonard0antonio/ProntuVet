@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useLogin } from '../../hooks/useApi';
+import { useToast } from '../../components/Toast';
+import { useNavigate } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -12,18 +15,32 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
+  const { mutate: login, isLoading: isSubmitting } = useLogin();
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     mode: 'onSubmit',
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    alert('Login successful');
+    try {
+        await login(data as { email: string; password: string });
+      showSuccess('Login realizado com sucesso!', 'Bem-vindo ao ProntuVet');
+      navigate('/');
+    } catch (error) {
+      const apiError = error as { status?: number; message?: string };
+      if (apiError.status === 401) {
+        showError('Credenciais inválidas', 'Verifique seu email e senha');
+      } else {
+        showError('Erro ao fazer login', 'Tente novamente mais tarde');
+      }
+    }
   };
 
   return (

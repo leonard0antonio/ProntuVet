@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Skeleton } from './Skeleton';
+import { useDashboardAppointments, useDashboardHospitalizedPets, useDashboardAlerts, useDashboardStats } from '../../hooks/useApi';
+import { useToast } from '../../components/Toast';
 
 interface Appointment {
   id: string;
@@ -8,15 +10,6 @@ interface Appointment {
   tutorName: string;
   type: 'consulta' | 'vacina' | 'cirurgia' | 'retorno';
   status: 'agendado' | 'em_andamento' | 'concluido' | 'cancelado';
-}
-
-interface HospitalizedPet {
-  id: string;
-  petName: string;
-  species: string;
-  tutorName: string;
-  admissionDate: string;
-  condition: string;
 }
 
 interface Alert {
@@ -87,33 +80,22 @@ const alertTypeConfig: Record<Alert['type'], { bg: string; border: string; color
 };
 
 export const Dashboard: React.FC = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [hospitalizedPets, setHospitalizedPets] = useState<HospitalizedPet[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { showError } = useToast();
+  const { data: appointments, isLoading: appointmentsLoading, error: appointmentsError } = useDashboardAppointments();
+  const { data: hospitalizedPets, isLoading: hospitalizedLoading, error: hospitalizedError } = useDashboardHospitalizedPets();
+    const { data: alerts, isLoading: alertsLoading, error: alertsError } = useDashboardAlerts();
+    const { isLoading: statsLoading, error: statsError } = useDashboardStats();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setAppointments([
-        { id: '1', time: '08:00', petName: 'Rex', tutorName: 'João Silva', type: 'consulta', status: 'agendado' },
-        { id: '2', time: '09:30', petName: 'Mimi', tutorName: 'Maria Santos', type: 'vacina', status: 'agendado' },
-        { id: '3', time: '11:00', petName: 'Thor', tutorName: 'Pedro Oliveira', type: 'cirurgia', status: 'em_andamento' },
-        { id: '4', time: '14:00', petName: 'Luna', tutorName: 'Ana Costa', type: 'retorno', status: 'agendado' },
-      ]);
-      setHospitalizedPets([
-        { id: '1', petName: 'Bolt', species: 'Cachorro', tutorName: 'Carlos Lima', admissionDate: '2024-01-15', condition: 'Pós-operatório' },
-        { id: '2', petName: 'Nina', species: 'Gato', tutorName: 'Fernanda Alves', admissionDate: '2024-01-14', condition: 'Desidratação' },
-      ]);
-      setAlerts([
-        { id: '1', type: 'warning', message: 'Vacina V10 vencendo em 3 dias para o pet Rex', timestamp: '2024-01-15 08:00' },
-        { id: '2', type: 'info', message: 'Nova atualização do sistema disponível', timestamp: '2024-01-15 07:30' },
-        { id: '3', type: 'danger', message: 'Pet Thor em cirurgia de emergência', timestamp: '2024-01-15 11:00' },
-      ]);
-      setIsLoading(false);
-    };
-    fetchData();
-  }, []);
+  const isLoading = appointmentsLoading || hospitalizedLoading || alertsLoading || statsLoading;
+  const hasError = appointmentsError || hospitalizedError || alertsError || statsError;
+  const appointmentList = appointments ?? [];
+
+  // Show error toast on first error
+  React.useEffect(() => {
+    if (hasError) {
+      showError('Erro ao carregar dashboard', 'Alguns dados não puderam ser carregados');
+    }
+  }, [hasError, showError]);
 
   if (isLoading) {
     return (
@@ -150,7 +132,7 @@ export const Dashboard: React.FC = () => {
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           </div>
-          <div className="stat-card-value">{appointments.length}</div>
+          <div className="stat-card-value">{appointmentList.length}</div>
           <div className="stat-card-label">Agendamentos hoje</div>
           <div className="stat-card-trend positive">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -168,7 +150,7 @@ export const Dashboard: React.FC = () => {
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
           </div>
-          <div className="stat-card-value">{appointments.filter(a => a.status === 'concluido').length}</div>
+          <div className="stat-card-value">{appointmentList.filter(a => a.status === 'concluido').length}</div>
           <div className="stat-card-label">Concluídos</div>
         </div>
         <div className="stat-card">
@@ -178,7 +160,7 @@ export const Dashboard: React.FC = () => {
               <circle cx="12" cy="10" r="3" />
             </svg>
           </div>
-          <div className="stat-card-value">{hospitalizedPets.length}</div>
+          <div className="stat-card-value">{hospitalizedPets?.length || 0}</div>
           <div className="stat-card-label">Internados</div>
         </div>
         <div className="stat-card">
@@ -189,7 +171,7 @@ export const Dashboard: React.FC = () => {
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <div className="stat-card-value">{alerts.filter(a => a.type === 'danger').length}</div>
+          <div className="stat-card-value">{alerts?.filter(a => a.type === 'danger').length || 0}</div>
           <div className="stat-card-label">Alertas críticos</div>
         </div>
       </div>
@@ -208,7 +190,7 @@ export const Dashboard: React.FC = () => {
             </h2>
           </header>
           <div className="dashboard-section-body">
-            {appointments.length === 0 ? (
+            {appointmentList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '48px', height: '48px', margin: '0 auto 1rem', opacity: 0.5 }} aria-hidden="true">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -220,7 +202,7 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="dashboard-list">
-                {appointments.map(apt => (
+                {appointmentList.map(apt => (
                   <div key={apt.id} className="dashboard-list-item">
                     <div className="dashboard-list-item-content">
                       <div className="dashboard-list-item-title">
@@ -257,7 +239,7 @@ export const Dashboard: React.FC = () => {
             </h2>
           </header>
           <div className="dashboard-section-body">
-            {hospitalizedPets.length === 0 ? (
+            {hospitalizedPets?.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '48px', height: '48px', margin: '0 auto 1rem', opacity: 0.5 }} aria-hidden="true">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -267,7 +249,7 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="dashboard-list">
-                {hospitalizedPets.map(pet => (
+                              {hospitalizedPets?.map(pet => (
                   <div key={pet.id} className="dashboard-list-item">
                     <div className="dashboard-list-item-content">
                       <div className="dashboard-list-item-title">
@@ -305,7 +287,7 @@ export const Dashboard: React.FC = () => {
             </h2>
           </header>
           <div className="dashboard-section-body">
-            {alerts.length === 0 ? (
+            {alerts?.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '48px', height: '48px', margin: '0 auto 1rem', opacity: 0.5 }} aria-hidden="true">
                   <circle cx="12" cy="12" r="10" />
@@ -316,7 +298,7 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="dashboard-list">
-                {alerts.map(alert => {
+                {alerts?.map(alert => {
                   const config = alertTypeConfig[alert.type];
                   return (
                     <div key={alert.id} className="dashboard-list-item" style={{ borderLeft: `4px solid ${config.border}`, background: config.bg }}>

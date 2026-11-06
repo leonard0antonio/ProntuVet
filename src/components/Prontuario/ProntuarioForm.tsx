@@ -1,9 +1,6 @@
-import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import InputMask from 'react-input-mask';
-import DOMPurify from 'dompurify';
 
 const prontuarioSchema = z.object({
   petName: z.string().min(1, { message: 'Nome do pet é obrigatório' }).max(100, { message: 'Nome do pet não pode ter mais de 100 caracteres' }),
@@ -19,18 +16,16 @@ const prontuarioSchema = z.object({
 type ProntuarioFormValues = z.infer<typeof prontuarioSchema>;
 
 export const ProntuarioForm: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ProntuarioFormValues>({
     resolver: zodResolver(prontuarioSchema),
     mode: 'onSubmit',
   });
 
-  const onSubmit = async (data: ProntuarioFormValues) => {
+      const onSubmit = async (_data: ProntuarioFormValues) => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     alert('Prontuário salvo com sucesso');
   };
@@ -203,7 +198,7 @@ export const ProntuarioForm: React.FC = () => {
               <label htmlFor="prescription" className="form-label form-label-required">Prescrição</label>
               <textarea
                 id="prescription"
-                rows="5"
+                rows={5}
                 {...register('prescription', { required: 'Prescrição é obrigatória' })}
                 className={`form-textarea ${errors.prescription ? 'error' : ''}`}
                 placeholder="Descreva a prescrição médica, dosagens, orientações..."
@@ -227,14 +222,14 @@ export const ProntuarioForm: React.FC = () => {
             <div className="form-group">
               <label htmlFor="examAttachments" className="form-label form-label-required">Anexos de Exames</label>
               <input
-                id="examAttachments"
-                type="text"
-                {...register('examAttachments', { required: 'Adicione pelo menos um exame' })}
-                className={`form-input ${errors.examAttachments ? 'error' : ''}`}
-                placeholder="http://example.com/exame.pdf (separe múltiplas URLs por vírgula)"
-                aria-invalid={errors.examAttachments ? 'true' : 'false'}
-                aria-describedby={errors.examAttachments ? 'examAttachments-error' : 'examAttachments-hint'}
-              />
+                              id="examAttachments"
+                              type="text"
+                              {...register('examAttachments', { required: 'Adicione pelo menos um exame' })}
+                              className={`form-input ${errors.examAttachments ? 'error' : ''}`}
+                              placeholder="http://example.com/exame.pdf (separe múltiplas URLs por vírgula)"
+                              aria-invalid={errors.examAttachments ? 'true' : 'false'}
+                              aria-describedby={errors.examAttachments ? 'examAttachments-error' : 'examAttachments-hint'}
+                            />
               {errors.examAttachments ? (
                 <p id="examAttachments-error" className="form-error" role="alert">
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
