@@ -164,9 +164,8 @@ function getPet(clinicId: string, id: string): PetRow {
   return pet;
 }
 
-function recordList(clinicId: string, petId?: string): Prontuario[] {
-  return readTable('medical_records')
-    .filter(record => record.clinic_id === clinicId && (!petId || record.pet_id === petId))
+async function recordList(clinicId: string, petId?: string): Promise<Prontuario[]> {
+  return (await medicalRecordsApi.list(clinicId, petId))
     .map(record => toProntuario(record, getPet(clinicId, record.pet_id)));
 }
 
@@ -277,8 +276,7 @@ export const api = {
 
   prontuarios: {
     async list(petId?: string, params: ListParams = {}): Promise<PaginatedResponse<Prontuario>> {
-      await networkDelay();
-      const records = recordList(activeClinicId(), petId);
+      const records = await recordList(activeClinicId(), petId);
       return paginate(sortRows(records, params), params);
     },
 
