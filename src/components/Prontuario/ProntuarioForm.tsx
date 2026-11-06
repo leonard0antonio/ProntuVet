@@ -1,8 +1,12 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link } from 'react-router-dom';
+import { useToast } from '../Toast';
+import { useCreateProntuario, useTutors } from '../../hooks/useApi';
 
 const prontuarioSchema = z.object({
+  tutorId: z.string().min(1, { message: 'Selecione um tutor' }),
   petName: z.string().min(1, { message: 'Nome do pet é obrigatório' }).max(100, { message: 'Nome do pet não pode ter mais de 100 caracteres' }),
   species: z.enum(['cachorro', 'gato', 'coelho', 'hamster', 'outro'], { message: 'Espécie inválida' }),
   breed: z.string().min(1, { message: 'Raça é obrigatória' }).max(100, { message: 'Raça não pode ter mais de 100 caracteres' }),
@@ -10,12 +14,18 @@ const prontuarioSchema = z.object({
   weight: z.number().min(0.1, { message: 'Peso deve ser maior que 0' }).max(30, { message: 'Peso não pode ser maior que 30kg' }),
   vaccinationDate: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Data de vacinação inválida' }),
   prescription: z.string().min(1, { message: 'Prescrição é obrigatória' }).max(2000, { message: 'Prescrição não pode ter mais de 2000 caracteres' }),
-  examAttachments: z.array(z.string().url({ message: 'Anexo deve ser uma URL válida' })).min(1, { message: 'Adicione pelo menos um exame' }),
+  examAttachments: z.string().optional().default('').refine(value => {
+    const urls = value.split(',').map(url => url.trim()).filter(Boolean);
+    return urls.every(url => z.string().url().safeParse(url).success);
+  }, { message: 'Informe URLs válidas, separadas por vírgula' }),
 });
 
 type ProntuarioFormValues = z.infer<typeof prontuarioSchema>;
 
 export const ProntuarioForm: React.FC = () => {
+  const { showSuccess, showError } = useToast();
+  const { data: tutors, isLoading: tutorsLoading, error: tutorsError } = useTutors();
+  const { mutate: createProntuario, isLoading: isSaving } = useCreateProntuario();
   const {
     register,
     handleSubmit,
@@ -25,10 +35,20 @@ export const ProntuarioForm: React.FC = () => {
     mode: 'onSubmit',
   });
 
-      const onSubmit = async (_data: ProntuarioFormValues) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    alert('Prontuário salvo com sucesso');
-  };
+      const onSubmit = async (data: ProntuarioFormValues) => {
+        try {
+          await createProntuario({
+            ...data,
+            examAttachments: data.examAttachments.split(',').map(url => url.trim()).filter(Boolean),
+          });
+          showSuccess('Prontuário salvo', 'O pet e o atendimento foram salvos localmente');
+        } catch (error) {
+          showError(
+            'Não foi possível salvar o prontuário',
+            error instanceof Error ? error.message : 'Tente novamente.',
+          );
+        }
+      };
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -41,6 +61,35 @@ export const ProntuarioForm: React.FC = () => {
       <div className="card">
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="card-body">
+            <div className="form-group">
+              <label htmlFor="tutorId" className="form-label form-label-required">Tutor</label>
+              <select
+                id="tutorId"
+                {...register('tutorId', { required: 'Selecione um tutor' })}
+                className={`form-select ${errors.tutorId ? 'error' : ''}`}
+                disabled={tutorsLoading || tutors.length === 0}
+                aria-invalid={errors.tutorId ? 'true' : 'false'}
+                aria-describedby={errors.tutorId ? 'tutorId-error' : undefined}
+              >
+                <option value="">
+                  {tutorsLoading ? 'Carregando tutores...' : 'Selecione o tutor'}
+                </option>
+                {tutors.map(tutor => (
+                  <option key={tutor.id} value={tutor.id}>{tutor.name}</option>
+                ))}
+              </select>
+              {errors.tutorId && (
+                <p id="tutorId-error" className="form-error" role="alert">{errors.tutorId.message}</p>
+              )}
+              {tutorsError && (
+                <p className="form-error" role="alert">Não foi possível carregar os tutores.</p>
+              )}
+              {!tutorsLoading && tutors.length === 0 && (
+                <p className="form-hint">
+                  Cadastre um tutor antes de criar o prontuário. <Link to="/tutores">Cadastrar tutor</Link>
+                </p>
+              )}
+            </div>
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="petName" className="form-label form-label-required">Nome do Pet</label>
@@ -220,16 +269,16 @@ export const ProntuarioForm: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="examAttachments" className="form-label form-label-required">Anexos de Exames</label>
+              <label htmlFor="examAttachments" className="form-label">Anexos de Exames (opcional)</label>
               <input
-                              id="examAttachments"
-                              type="text"
-                              {...register('examAttachments', { required: 'Adicione pelo menos um exame' })}
-                              className={`form-input ${errors.examAttachments ? 'error' : ''}`}
-                              placeholder="http://example.com/exame.pdf (separe múltiplas URLs por vírgula)"
-                              aria-invalid={errors.examAttachments ? 'true' : 'false'}
-                              aria-describedby={errors.examAttachments ? 'examAttachments-error' : 'examAttachments-hint'}
-                            />
+                id="examAttachments"
+                type="text"
+                {...register('examAttachments')}
+                className={`form-input ${errors.examAttachments ? 'error' : ''}`}
+                placeholder="https://exemplo.com/exame.pdf (múltiplas URLs separadas por vírgula)"
+                aria-invalid={errors.examAttachments ? 'true' : 'false'}
+                aria-describedby={errors.examAttachments ? 'examAttachments-error' : 'examAttachments-hint'}
+              />
               {errors.examAttachments ? (
                 <p id="examAttachments-error" className="form-error" role="alert">
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -240,14 +289,14 @@ export const ProntuarioForm: React.FC = () => {
                                   {errors.examAttachments.message}
                 </p>
               ) : (
-                <p id="examAttachments-hint" className="form-hint">Adicione URLs de exames (ex: http://example.com/exame.pdf)</p>
+                <p id="examAttachments-hint" className="form-hint">Informe URLs de PDFs para simular anexos do prontuário.</p>
               )}
             </div>
           </div>
           <div className="card-footer form-actions">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSaving || tutorsLoading || tutors.length === 0}
               className="btn btn-primary"
             >
               {isSubmitting ? (

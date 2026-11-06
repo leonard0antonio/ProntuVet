@@ -103,8 +103,11 @@ export function usePaginatedFetch<T>(
   options: UseFetchOptions<PaginatedResponse<T>> = {}
 ) {
   const [params, setParams] = useState<ListParams>(initialParams);
+  const fetchFnRef = useRef(fetchFn);
+  fetchFnRef.current = fetchFn;
+  const fetchPage = useCallback(() => fetchFnRef.current(params), [params]);
   const { data, error, isLoading, isError, isSuccess, refetch } = useFetch(
-    () => fetchFn(params),
+    fetchPage,
     options
   );
 
