@@ -16,6 +16,7 @@ import { sanitizeText, sanitizeUrl } from '../utils/sanitize';
 import type {
   Alert,
   Appointment,
+  CreateProntuarioPayload,
   HospitalizedPet,
   ListParams,
   PaginatedResponse,
@@ -24,11 +25,6 @@ import type {
   Tutor,
   User,
 } from './apiTypes';
-
-export type CreateProntuarioPayload = Omit<
-  Prontuario,
-  'id' | 'createdAt' | 'updatedAt' | 'petId'
-> & { tutorId: string };
 
 function activeClinicId(): string {
   const session = getActiveMockSession();
@@ -302,7 +298,7 @@ export const api = {
         },
         vaccinationDate: data.vaccinationDate,
         prescription: sanitizeText(data.prescription),
-        examAttachments: data.examAttachments.map(sanitizeUrl).filter(Boolean),
+        examAttachments: data.examFiles.map(file => sanitizeText(file.name)),
       });
       return toProntuario(medicalRecord, getPet(clinicId, medicalRecord.pet_id));
     },

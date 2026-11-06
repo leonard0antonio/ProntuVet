@@ -1,7 +1,6 @@
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import InputMask from 'react-input-mask';
 import { useToast } from '../../components/Toast';
 import { useCreateTutor } from '../../hooks/useApi';
 
@@ -16,6 +15,25 @@ const tutorSchema = z.object({
 });
 
 type TutorFormValues = z.infer<typeof tutorSchema>;
+
+function formatCpf(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits ? `(${digits}` : '';
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function formatZip(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 8);
+}
 
 export const TutorForm: React.FC = () => {
   const { showSuccess, showError } = useToast();
@@ -90,14 +108,16 @@ export const TutorForm: React.FC = () => {
                   render={({ field }) => {
                     const { ref, ...inputProps } = field;
                     return (
-                      <InputMask
+                      <input
                         {...inputProps}
-                        inputRef={ref}
+                        ref={ref}
                         id="cpf"
-                        mask="999.999.999-99"
                         value={field.value ?? ''}
+                        onChange={event => field.onChange(formatCpf(event.target.value))}
                         className={`form-input ${errors.cpf ? 'error' : ''}`}
                         placeholder="000.000.000-00"
+                        inputMode="numeric"
+                        autoComplete="off"
                         aria-invalid={errors.cpf ? 'true' : 'false'}
                         aria-describedby={errors.cpf ? 'cpf-error' : undefined}
                       />
@@ -126,14 +146,16 @@ export const TutorForm: React.FC = () => {
                   render={({ field }) => {
                     const { ref, ...inputProps } = field;
                     return (
-                      <InputMask
+                      <input
                         {...inputProps}
-                        inputRef={ref}
+                        ref={ref}
                         id="phone"
-                        mask="(99) 99999-9999"
                         value={field.value ?? ''}
+                        onChange={event => field.onChange(formatPhone(event.target.value))}
                         className={`form-input ${errors.phone ? 'error' : ''}`}
                         placeholder="(00) 00000-0000"
+                        inputMode="tel"
+                        autoComplete="tel"
                         aria-invalid={errors.phone ? 'true' : 'false'}
                         aria-describedby={errors.phone ? 'phone-error' : undefined}
                       />
@@ -236,14 +258,16 @@ export const TutorForm: React.FC = () => {
                   render={({ field }) => {
                     const { ref, ...inputProps } = field;
                     return (
-                      <InputMask
+                      <input
                         {...inputProps}
-                        inputRef={ref}
+                        ref={ref}
                         id="zip"
-                        mask="99999999"
                         value={field.value ?? ''}
+                        onChange={event => field.onChange(formatZip(event.target.value))}
                         className={`form-input ${errors.zip ? 'error' : ''}`}
                         placeholder="00000000"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
                         aria-invalid={errors.zip ? 'true' : 'false'}
                         aria-describedby={errors.zip ? 'zip-error' : undefined}
                       />

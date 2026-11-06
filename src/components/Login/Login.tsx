@@ -28,7 +28,7 @@ export const Login: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError, showInfo } = useToast();
   const { signIn, signUp } = useAuth();
 
   const {
@@ -56,7 +56,14 @@ export const Login: React.FC = () => {
           return;
         }
 
-        await signUp(result.data);
+        const authResult = await signUp(result.data);
+        if (!authResult.session) {
+          showInfo(
+            'Confirme seu email',
+            'Depois de confirmar, entre novamente para concluir o cadastro da clínica.',
+          );
+          return;
+        }
         showSuccess('Clínica cadastrada com sucesso!', 'Sua conta já está pronta para uso');
       } else {
         const result = loginSchema.safeParse(data);

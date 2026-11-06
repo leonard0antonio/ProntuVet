@@ -48,14 +48,9 @@ const AppContent: React.FC = () => {
     timeout: 10 * 60 * 1000,
     warningTime: 60 * 1000,
     onWarning: () => {
-      showWarning(
-        () => {
-          hideWarning();
-        },
-        () => {
-          void logout();
-        }
-      );
+      showWarning(() => {
+        void logout();
+      });
     },
     onTimeout: () => {
       void logout();

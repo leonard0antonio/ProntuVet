@@ -222,9 +222,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
         throw new NotFoundError();
       case 422:
         throw new ValidationError('Dados inválidos', errorData as Record<string, string[]>);
-      default:
+      default: {
         const message = (errorData as { message?: string })?.message || `Erro ${response.status}: ${response.statusText}`;
         throw new ApiError(message, response.status, undefined, errorData);
+      }
     }
   }
 

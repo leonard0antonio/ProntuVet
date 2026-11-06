@@ -4,14 +4,12 @@ interface SecureInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   showToggle?: boolean;
-  mask?: string;
 }
 
 export const SecureInput: React.FC<SecureInputProps> = ({
   label,
   error,
   showToggle = false,
-  mask,
   type = 'text',
   id,
   ...props

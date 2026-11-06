@@ -14,10 +14,15 @@ const prontuarioSchema = z.object({
   weight: z.number().min(0.1, { message: 'Peso deve ser maior que 0' }).max(30, { message: 'Peso não pode ser maior que 30kg' }),
   vaccinationDate: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Data de vacinação inválida' }),
   prescription: z.string().min(1, { message: 'Prescrição é obrigatória' }).max(2000, { message: 'Prescrição não pode ter mais de 2000 caracteres' }),
-  examAttachments: z.string().optional().default('').refine(value => {
-    const urls = value.split(',').map(url => url.trim()).filter(Boolean);
-    return urls.every(url => z.string().url().safeParse(url).success);
-  }, { message: 'Informe URLs válidas, separadas por vírgula' }),
+  examFiles: z.custom<FileList>().optional().refine(
+    files => !files || files.length <= 5,
+    'Anexe no máximo 5 arquivos por atendimento',
+  ).refine(
+    files => !files || Array.from(files).every(file =>
+      file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024,
+    ),
+    'Cada anexo deve ser um PDF de até 10 MB',
+  ),
 });
 
 type ProntuarioFormValues = z.infer<typeof prontuarioSchema>;
@@ -39,9 +44,9 @@ export const ProntuarioForm: React.FC = () => {
         try {
           await createProntuario({
             ...data,
-            examAttachments: data.examAttachments.split(',').map(url => url.trim()).filter(Boolean),
+            examFiles: Array.from(data.examFiles ?? []),
           });
-          showSuccess('Prontuário salvo', 'O pet e o atendimento foram salvos localmente');
+          showSuccess('Prontuário salvo', 'O pet e o atendimento foram salvos');
         } catch (error) {
           showError(
             'Não foi possível salvar o prontuário',
@@ -269,27 +274,28 @@ export const ProntuarioForm: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="examAttachments" className="form-label">Anexos de Exames (opcional)</label>
+              <label htmlFor="examFiles" className="form-label">Anexos de Exames (opcional)</label>
               <input
-                id="examAttachments"
-                type="text"
-                {...register('examAttachments')}
-                className={`form-input ${errors.examAttachments ? 'error' : ''}`}
-                placeholder="https://exemplo.com/exame.pdf (múltiplas URLs separadas por vírgula)"
-                aria-invalid={errors.examAttachments ? 'true' : 'false'}
-                aria-describedby={errors.examAttachments ? 'examAttachments-error' : 'examAttachments-hint'}
+                id="examFiles"
+                type="file"
+                accept="application/pdf,.pdf"
+                multiple
+                {...register('examFiles')}
+                className={`form-input ${errors.examFiles ? 'error' : ''}`}
+                aria-invalid={errors.examFiles ? 'true' : 'false'}
+                aria-describedby={errors.examFiles ? 'examFiles-error' : 'examFiles-hint'}
               />
-              {errors.examAttachments ? (
-                <p id="examAttachments-error" className="form-error" role="alert">
+              {errors.examFiles ? (
+                <p id="examFiles-error" className="form-error" role="alert">
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                     <circle cx="12" cy="12" r="10" />
                                     <line x1="12" y1="8" x2="12" y2="12" />
                                     <line x1="12" y1="16" x2="12.01" y2="16" />
                                   </svg>
-                                  {errors.examAttachments.message}
+                                  {errors.examFiles.message}
                 </p>
               ) : (
-                <p id="examAttachments-hint" className="form-hint">Informe URLs de PDFs para simular anexos do prontuário.</p>
+                <p id="examFiles-hint" className="form-hint">PDFs de até 10 MB cada, máximo de 5 arquivos por atendimento.</p>
               )}
             </div>
           </div>

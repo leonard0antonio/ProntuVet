@@ -1,16 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { useState, useCallback, type ReactNode } from 'react';
 import ToastComponent, { type Toast as ToastTypeDef } from './Toast';
-
-interface ToastContextType {
-  showToast: (toast: Omit<ToastTypeDef, 'id'>) => string;
-  hideToast: (id: string) => void;
-  showSuccess: (title: string, message?: string, options?: { duration?: number; action?: ToastTypeDef['action'] }) => string;
-  showError: (title: string, message?: string, options?: { duration?: number; action?: ToastTypeDef['action'] }) => string;
-  showWarning: (title: string, message?: string, options?: { duration?: number; action?: ToastTypeDef['action'] }) => string;
-  showInfo: (title: string, message?: string, options?: { duration?: number; action?: ToastTypeDef['action'] }) => string;
-}
-
-const ToastContext = createContext<ToastContextType | null>(null);
+import { ToastContext } from './toastContext';
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastTypeDef[]>([]);
@@ -70,12 +60,4 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       </div>
     </ToastContext.Provider>
   );
-};
-
-export const useToast = (): ToastContextType => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 };

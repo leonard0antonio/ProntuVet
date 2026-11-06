@@ -1,1 +1,23 @@
-{\n  \"root\": true,\n  \"env\": { \"browser\": true, \"es2020\": true },\n  \"extends\": [\n    \"eslint:recommended\",\n    \"plugin:@typescript-eslint/recommended\",\n    \"plugin:react-hooks/recommended\"\n  ],\n  \"ignorePatterns\": [\"dist\", \".eslintrc.json\"],\n  \"parser\": \"@typescript-eslint/parser\",\n  \"plugins\": [\"react-refresh\"],\n  \"rules\": {\n    \"react-refresh/only-export-components\": [\n      \"warn\",\n      { \"allowConstantExport\": true }\n    ],\n    \"@typescript-eslint/no-explicit-any\": \"warn\",\n    \"@typescript-eslint/no-unused-vars\": [\"warn\", { \"argsIgnorePattern\": \"^_\" }]\n  }\n}\n
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "ignorePatterns": ["dist", ".eslintrc.json"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["react-refresh"],
+  "rules": {
+    "react-refresh/only-export-components": [
+      "warn",
+      { "allowConstantExport": true }
+    ],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
+  }
+}

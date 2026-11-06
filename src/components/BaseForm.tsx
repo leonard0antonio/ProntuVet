@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldPath, type FieldValues } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-export type BaseFormProps<T> = {
+export type BaseFormProps<T extends FieldValues> = {
   schema: z.ZodSchema<T>;
   onSubmit: (data: T) => Promise<void>;
   className?: string;
 };
 
-export const BaseForm = <T extends object>({ schema, onSubmit, className = '' }: BaseFormProps<T>) => {
+export const BaseForm = <T extends FieldValues>({ schema, onSubmit, className = '' }: BaseFormProps<T>) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
@@ -34,29 +34,26 @@ export const BaseForm = <T extends object>({ schema, onSubmit, className = '' }:
     <form className={className} onSubmit={handleSubmit(onSubmitWithLoading)} noValidate>
       {Object.entries(errors).map(([field, error]) => (
         <div key={field} style={{ marginBottom: '10px' }}>
-          {field === 'password' && (
-            <div style={{ position: 'relative', marginBottom: '10px' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                {...register(field as any, { required: true })} 
-                style={{ width: '100%', marginBottom: '5px' }}
-              />
+          <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+          <div style={{ position: 'relative', marginBottom: '10px' }}>
+            <input
+              id={field}
+              type={field === 'password' && !showPassword ? 'password' : 'text'}
+              {...register(field as FieldPath<T>)}
+              style={{ width: '100%', marginBottom: '5px' }}
+            />
+            {field === 'password' && (
               <button
                 type='button'
                 onClick={() => setShowPassword(prev => !prev)}
                 style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 {showPassword ? '👁️' : '🔒'}
               </button>
-            </div>
-          )}
-          <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-          <input
-            id={field}
-            {...register(field as any)}
-            style={{ width: '100%', marginBottom: '5px' }}
-          />
-          {error && <p style={{ color: 'red' }}>{error.message}</p>}
+            )}
+          </div>
+          {error?.message && <p style={{ color: 'red' }}>{String(error.message)}</p>}
         </div>
       ))}
 

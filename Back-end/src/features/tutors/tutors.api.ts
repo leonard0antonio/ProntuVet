@@ -7,6 +7,34 @@ function normalizeOptional(value: string | null | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+function normalizeCpf(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length !== 11) throw new Error('Invalid CPF');
+  return digits;
+}
+
+function assertUniqueCpf(
+  tutors: TutorRow[],
+  clinicId: string,
+  cpf: string | null,
+  excludingId?: string,
+): void {
+  if (
+    cpf
+    && tutors.some(
+      tutor =>
+        tutor.clinic_id === clinicId
+        && tutor.cpf === cpf
+        && tutor.id !== excludingId,
+    )
+  ) {
+    throw new Error('A tutor with this CPF already exists in the clinic');
+  }
+}
+
 function requireTutorFields(input: TutorInsert): void {
   if (!input || !input.clinicId || !input.fullName?.trim()) {
     throw new Error('Missing required fields');
@@ -37,7 +65,7 @@ export const tutorsApi = {
       id: createLocalId(),
       clinic_id: input.clinicId,
       full_name: input.fullName.trim(),
-      cpf: normalizeOptional(input.cpf),
+      cpf: normalizeCpf(input.cpf),
       phone: normalizeOptional(input.phone),
       email: normalizeOptional(input.email)?.toLowerCase() ?? null,
       address: normalizeOptional(input.address),
@@ -48,12 +76,14 @@ export const tutorsApi = {
       updated_at: now,
     };
 
+    const tutors = readTable('tutors');
+    assertUniqueCpf(tutors, tutor.clinic_id, tutor.cpf);
     const clinics = readTable('clinics');
     if (!clinics.some(clinic => clinic.id === tutor.clinic_id)) {
       throw new Error('Foreign key violation: clinic does not exist');
     }
 
-    writeTable('tutors', [...readTable('tutors'), tutor]);
+    writeTable('tutors', [...tutors, tutor]);
     return tutor;
   },
 
@@ -67,10 +97,12 @@ export const tutorsApi = {
     if (index < 0) throw new Error('Tutor not found');
 
     const current = tutors[index];
+    const cpf = input.cpf !== undefined ? normalizeCpf(input.cpf) : current.cpf;
+    assertUniqueCpf(tutors, clinicId, cpf, id);
     const updated: TutorRow = {
       ...current,
       ...(input.fullName !== undefined ? { full_name: input.fullName.trim() } : {}),
-      ...(input.cpf !== undefined ? { cpf: normalizeOptional(input.cpf) } : {}),
+      ...(input.cpf !== undefined ? { cpf } : {}),
       ...(input.phone !== undefined ? { phone: normalizeOptional(input.phone) } : {}),
       ...(input.email !== undefined
         ? { email: normalizeOptional(input.email)?.toLowerCase() ?? null }

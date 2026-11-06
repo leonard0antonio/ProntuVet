@@ -45,6 +45,14 @@ export interface Prontuario {
   updatedAt: string;
 }
 
+export type CreateProntuarioPayload = Omit<
+  Prontuario,
+  'id' | 'createdAt' | 'updatedAt' | 'petId' | 'examAttachments'
+> & {
+  tutorId: string;
+  examFiles: File[];
+};
+
 export interface Appointment {
   id: string;
   time: string;

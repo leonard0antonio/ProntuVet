@@ -21,7 +21,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-          security: ['dompurify', 'react-input-mask'],
+          security: ['dompurify'],
         },
       },
     },
