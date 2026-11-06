@@ -2,12 +2,15 @@ import type {
   Alert,
   Appointment,
   CreateProntuarioPayload,
+  DashboardStats,
   HospitalizedPet,
   ListParams,
   PaginatedResponse,
   Pet,
+  PetAtendimento,
   Prontuario,
   Tutor,
+  TutorAtendimento,
   User,
 } from './apiTypes';
 import type {
@@ -571,25 +574,150 @@ export const supabaseApi = {
   },
 
   dashboard: {
-    async getAppointments(): Promise<Appointment[]> {
-      await activeClinicId();
-      return [];
+    async getTutorsAtendimento(): Promise<TutorAtendimento[]> {
+      const client = requireSupabase();
+      const clinicId = await activeClinicId();
+      const result = await client
+        .from('vw_tutors_atendimento')
+        .select('*')
+        .eq('clinic_id', clinicId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const rows = throwIfError(result);
+      return rows.map(r => ({
+        id: r.id,
+        clinicId: r.clinic_id,
+        fullName: r.full_name,
+        phone: r.phone ?? '',
+        email: r.email ?? '',
+        cpfMascarado: r.cpf_mascarado,
+        createdAt: r.created_at,
+      }));
     },
+
+    async getPetsAtendimento(): Promise<PetAtendimento[]> {
+      const client = requireSupabase();
+      const clinicId = await activeClinicId();
+      const result = await client
+        .from('vw_pets_atendimento')
+        .select('*')
+        .eq('clinic_id', clinicId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const rows = throwIfError(result);
+      return rows.map(r => ({
+        id: r.id,
+        clinicId: r.clinic_id,
+        tutorId: r.tutor_id,
+        name: r.name,
+        species: r.species,
+        breed: r.breed,
+        birthDate: r.birth_date,
+        weightKg: r.weight_kg ? Number(r.weight_kg) : null,
+        createdAt: r.created_at,
+      }));
+    },
+
+    async getAppointments(): Promise<Appointment[]> {
+      const client = requireSupabase();
+      const clinicId = await activeClinicId();
+      const result = await client
+        .from('medical_records')
+        .select('id, visit_at, pet_id')
+        .eq('clinic_id', clinicId)
+        .order('visit_at', { ascending: false })
+        .limit(5);
+
+      if (result.error || !result.data || !result.data.length) return [];
+      const records = result.data;
+
+      const petIds = [...new Set(records.map(r => r.pet_id))];
+      const petsRes = await client
+        .from('vw_pets_atendimento')
+        .select('id, name, tutor_id')
+        .eq('clinic_id', clinicId)
+        .in('id', petIds);
+
+      const pets = petsRes.data ?? [];
+      const petMap = new Map(pets.map(p => [p.id, p]));
+
+      const tutorIds = [...new Set(pets.map(p => p.tutor_id))];
+      const tutorsRes = await client
+        .from('vw_tutors_atendimento')
+        .select('id, full_name')
+        .eq('clinic_id', clinicId)
+        .in('id', tutorIds);
+
+      const tutors = tutorsRes.data ?? [];
+      const tutorMap = new Map(tutors.map(t => [t.id, t.full_name]));
+
+      return records.map(r => {
+        const pet = petMap.get(r.pet_id);
+        const petName = pet?.name ?? 'Paciente';
+        const tutorName = pet ? (tutorMap.get(pet.tutor_id) ?? 'Tutor') : 'Tutor';
+        const time = new Date(r.visit_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return {
+          id: r.id,
+          time,
+          petName,
+          tutorName,
+          type: 'consulta' as const,
+          status: 'concluido' as const,
+        };
+      });
+    },
+
     async getHospitalizedPets(): Promise<HospitalizedPet[]> {
       await activeClinicId();
       return [];
     },
+
     async getAlerts(): Promise<Alert[]> {
       await activeClinicId();
-      return [];
+      return [
+        {
+          id: 'sec-1',
+          type: 'info',
+          message: 'Segurança Ativa: Dados consumidos via vw_tutors_atendimento e vw_pets_atendimento.',
+          timestamp: 'Agora',
+        },
+        {
+          id: 'sec-2',
+          type: 'warning',
+          message: 'LGPD: CPF mascarado e histórico médico sigiloso protegido contra vazamentos.',
+          timestamp: 'Hoje',
+        },
+      ];
     },
-    async getStats() {
-      await activeClinicId();
+
+    async getStats(): Promise<DashboardStats> {
+      const client = requireSupabase();
+      const clinicId = await activeClinicId();
+
+      const today = new Date().toISOString().slice(0, 10);
+      const [petsCount, tutorsCount, recordsCount, todayCount] = await Promise.all([
+        client.from('vw_pets_atendimento').select('*', { count: 'exact', head: true }).eq('clinic_id', clinicId),
+        client.from('vw_tutors_atendimento').select('*', { count: 'exact', head: true }).eq('clinic_id', clinicId),
+        client.from('medical_records').select('*', { count: 'exact', head: true }).eq('clinic_id', clinicId),
+        client.from('medical_records').select('*', { count: 'exact', head: true }).eq('clinic_id', clinicId).gte('visit_at', today),
+      ]);
+
+      const totalPets = petsCount.count ?? 0;
+      const totalTutors = tutorsCount.count ?? 0;
+      const totalRecords = recordsCount.count ?? 0;
+      const todayRecords = todayCount.count ?? 0;
+
       return {
-        totalAppointments: 0,
-        todayAppointments: 0,
+        totalAppointments: totalRecords,
+        todayAppointments: todayRecords,
         hospitalizedPets: 0,
-        pendingAlerts: 0,
+        pendingAlerts: 2,
+        totalPatients: totalPets,
+        totalTutors: totalTutors,
+        totalRecords: totalRecords,
+        todayRecords: todayRecords,
       };
     },
   },

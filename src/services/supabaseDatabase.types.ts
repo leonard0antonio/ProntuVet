@@ -28,7 +28,34 @@ export interface Database {
       medical_records: Table<MedicalRecordRow, Omit<MedicalRecordRow, 'id' | 'created_at' | 'updated_at'>, Partial<Omit<MedicalRecordRow, 'id' | 'clinic_id' | 'created_by' | 'created_at'>>>;
       exam_files: Table<ExamFileRow, Omit<ExamFileRow, 'id' | 'created_at'>, Partial<Omit<ExamFileRow, 'id' | 'clinic_id' | 'medical_record_id' | 'created_at'>>>;
     };
-    Views: { [_ in never]: never };
+    Views: {
+      vw_tutors_atendimento: {
+        Row: {
+          id: string;
+          clinic_id: string;
+          full_name: string;
+          phone: string | null;
+          email: string | null;
+          cpf_mascarado: string;
+          created_at: string;
+        };
+        Relationships: [];
+      };
+      vw_pets_atendimento: {
+        Row: {
+          id: string;
+          clinic_id: string;
+          tutor_id: string;
+          name: string;
+          species: string;
+          breed: string | null;
+          birth_date: string | null;
+          weight_kg: number | null;
+          created_at: string;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       create_clinic_with_owner: {
         Args: ObjectShape<{

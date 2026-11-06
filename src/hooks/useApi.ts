@@ -326,6 +326,14 @@ export function useDashboardStats() {
   return useFetch(api.dashboard.getStats);
 }
 
+export function useDashboardTutorsAtendimento() {
+  return useFetch(api.dashboard.getTutorsAtendimento);
+}
+
+export function useDashboardPetsAtendimento() {
+  return useFetch(api.dashboard.getPetsAtendimento);
+}
+
 // Auth hooks
 export function useLogin() {
   return useMutation(({ email, password }: { email: string; password: string }) =>

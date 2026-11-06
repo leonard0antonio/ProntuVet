@@ -78,6 +78,39 @@ export interface Alert {
   timestamp: string;
 }
 
+export interface TutorAtendimento {
+  id: string;
+  clinicId: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  cpfMascarado: string;
+  createdAt: string;
+}
+
+export interface PetAtendimento {
+  id: string;
+  clinicId: string;
+  tutorId: string;
+  name: string;
+  species: string;
+  breed?: string | null;
+  birthDate?: string | null;
+  weightKg?: number | null;
+  createdAt: string;
+}
+
+export interface DashboardStats {
+  totalAppointments: number;
+  todayAppointments: number;
+  hospitalizedPets: number;
+  pendingAlerts: number;
+  totalPatients: number;
+  totalTutors: number;
+  totalRecords: number;
+  todayRecords: number;
+}
+
 // API Response wrapper
 export interface ApiResponse<T> {
   data: T;

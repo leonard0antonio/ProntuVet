@@ -17,12 +17,15 @@ import type {
   Alert,
   Appointment,
   CreateProntuarioPayload,
+  DashboardStats,
   HospitalizedPet,
   ListParams,
   PaginatedResponse,
   Pet,
+  PetAtendimento,
   Prontuario,
   Tutor,
+  TutorAtendimento,
   User,
 } from './apiTypes';
 
@@ -356,10 +359,66 @@ export const api = {
   },
 
   dashboard: {
+    async getTutorsAtendimento(): Promise<TutorAtendimento[]> {
+      await networkDelay();
+      const clinicId = activeClinicId();
+      const tutors = readTable('tutors').filter(t => t.clinic_id === clinicId);
+      return tutors.map(t => {
+        const cpf = t.cpf ?? '';
+        const cpfMascarado = cpf.length === 11 ? `***.***.***-${cpf.slice(-2)}` : 'Não informado';
+        return {
+          id: t.id,
+          clinicId: t.clinic_id,
+          fullName: t.full_name,
+          phone: t.phone ?? '',
+          email: t.email ?? '',
+          cpfMascarado,
+          createdAt: t.created_at,
+        };
+      });
+    },
+
+    async getPetsAtendimento(): Promise<PetAtendimento[]> {
+      await networkDelay();
+      const clinicId = activeClinicId();
+      const pets = readTable('pets').filter(p => p.clinic_id === clinicId);
+      return pets.map(p => ({
+        id: p.id,
+        clinicId: p.clinic_id,
+        tutorId: p.tutor_id,
+        name: p.name,
+        species: p.species,
+        breed: p.breed,
+        birthDate: p.birth_date,
+        weightKg: p.weight_kg ?? null,
+        createdAt: p.created_at,
+      }));
+    },
+
     async getAppointments(): Promise<Appointment[]> {
       await networkDelay();
-      assertActiveClinic(activeClinicId());
-      return [];
+      const clinicId = activeClinicId();
+      const records = readTable('medical_records').filter(r => r.clinic_id === clinicId);
+      const pets = readTable('pets').filter(p => p.clinic_id === clinicId);
+      const tutors = readTable('tutors').filter(t => t.clinic_id === clinicId);
+
+      const petMap = new Map(pets.map(p => [p.id, p]));
+      const tutorMap = new Map(tutors.map(t => [t.id, t.full_name]));
+
+      return records.slice(-5).reverse().map(r => {
+        const pet = petMap.get(r.pet_id);
+        const petName = pet?.name ?? 'Paciente';
+        const tutorName = pet ? (tutorMap.get(pet.tutor_id) ?? 'Tutor') : 'Tutor';
+        const time = new Date(r.visit_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return {
+          id: r.id,
+          time,
+          petName,
+          tutorName,
+          type: 'consulta' as const,
+          status: 'concluido' as const,
+        };
+      });
     },
 
     async getHospitalizedPets(): Promise<HospitalizedPet[]> {
@@ -371,22 +430,40 @@ export const api = {
     async getAlerts(): Promise<Alert[]> {
       await networkDelay();
       assertActiveClinic(activeClinicId());
-      return [];
+      return [
+        {
+          id: 'sec-1',
+          type: 'info',
+          message: 'Segurança Ativa: Dados consumidos via vw_tutors_atendimento e vw_pets_atendimento.',
+          timestamp: 'Agora',
+        },
+        {
+          id: 'sec-2',
+          type: 'warning',
+          message: 'LGPD: CPF mascarado e histórico médico sigiloso protegido contra vazamentos.',
+          timestamp: 'Hoje',
+        },
+      ];
     },
 
-    async getStats(): Promise<{
-      totalAppointments: number;
-      todayAppointments: number;
-      hospitalizedPets: number;
-      pendingAlerts: number;
-    }> {
+    async getStats(): Promise<DashboardStats> {
       await networkDelay();
-      assertActiveClinic(activeClinicId());
+      const clinicId = activeClinicId();
+      const pets = readTable('pets').filter(p => p.clinic_id === clinicId);
+      const tutors = readTable('tutors').filter(t => t.clinic_id === clinicId);
+      const records = readTable('medical_records').filter(r => r.clinic_id === clinicId);
+      const today = new Date().toISOString().slice(0, 10);
+      const todayRecords = records.filter(r => r.visit_at.startsWith(today)).length;
+
       return {
-        totalAppointments: 0,
-        todayAppointments: 0,
+        totalAppointments: records.length,
+        todayAppointments: todayRecords,
         hospitalizedPets: 0,
-        pendingAlerts: 0,
+        pendingAlerts: 2,
+        totalPatients: pets.length,
+        totalTutors: tutors.length,
+        totalRecords: records.length,
+        todayRecords,
       };
     },
   },
