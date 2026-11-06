@@ -46,7 +46,6 @@ export const medicalRecordsApi = {
     requireRecordFields(input);
     const session = assertActiveClinic(input.clinicId);
     assertClinicalAccess(input.clinicId);
-    assertClinicalAccess(input.clinicId);
 
     const petExists = readTable('pets').some(
       pet => pet.id === input.petId && pet.clinic_id === input.clinicId,
@@ -89,7 +88,7 @@ export const medicalRecordsApi = {
     input: MedicalRecordUpdate,
   ): Promise<MedicalRecordRow> {
     await networkDelay();
-    assertActiveClinic(clinicId);
+    assertClinicalAccess(clinicId);
     const records = readTable('medical_records');
     const index = records.findIndex(
       record => record.clinic_id === clinicId && record.id === id,

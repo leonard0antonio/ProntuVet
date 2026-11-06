@@ -10,7 +10,7 @@ import {
 } from '../../Back-end/src/features/auth/mockAuth';
 import { petsApi } from '../../Back-end/src/features/pets/pets.api';
 import { tutorsApi } from '../../Back-end/src/features/tutors/tutors.api';
-import { networkDelay, readTable, writeTable } from '../../Back-end/src/services/localDb';
+import { createLocalId, networkDelay, readTable, writeTable } from '../../Back-end/src/services/localDb';
 import type { MedicalRecordRow, PetRow, TutorRow } from '../../Back-end/src/types/database';
 import { sanitizeText, sanitizeUrl } from '../utils/sanitize';
 import type {
@@ -165,7 +165,6 @@ function getPet(clinicId: string, id: string): PetRow {
 }
 
 function recordList(clinicId: string, petId?: string): Prontuario[] {
-  assertActiveClinic(clinicId);
   return readTable('medical_records')
     .filter(record => record.clinic_id === clinicId && (!petId || record.pet_id === petId))
     .map(record => toProntuario(record, getPet(clinicId, record.pet_id)));
@@ -343,7 +342,7 @@ export const api = {
         );
         const now = new Date().toISOString();
         const newFiles = data.examAttachments.map(sanitizeUrl).filter(Boolean).map(url => ({
-          id: crypto.randomUUID(),
+          id: createLocalId(),
           clinic_id: clinicId,
           medical_record_id: id,
           object_path: url,

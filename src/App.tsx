@@ -157,11 +157,7 @@ const AppContent: React.FC = () => {
                       </div>
                       <button
                         className="app-btn-logout"
-                        onClick={() => {
-                          localStorage.removeItem('auth_token');
-                          localStorage.removeItem('auth_user');
-                          window.location.href = '/login';
-                        }}
+                        onClick={() => void logout()}
                         aria-label="Sair do sistema"
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
