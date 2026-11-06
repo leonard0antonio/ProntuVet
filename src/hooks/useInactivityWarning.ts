@@ -13,7 +13,7 @@ export const useInactivityWarning = (): UseInactivityWarningReturn => {
   const [isWarningOpen, setIsWarningOpen] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(60000);
   const [callbacks, setCallbacks] = useState<{ onExtend: () => void; onLogout: () => void } | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const showWarning = useCallback((onExtend: () => void, onLogout: () => void) => {
     setCallbacks({ onExtend, onLogout });

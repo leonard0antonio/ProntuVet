@@ -1,22 +1,25 @@
-import React, { useState, useCallback } from 'react';
-import { ConfirmationModal } from '../components/Modal/ConfirmationModal';
+import { useState, useCallback } from 'react';
 
 interface UseConfirmationModalReturn {
   isOpen: boolean;
   open: (title: string, message: string, onConfirm: () => void, options?: { confirmText?: string; cancelText?: string; variant?: 'danger' | 'warning' | 'info' }) => void;
   close: () => void;
-}
-
-export const useConfirmationModal = (): UseConfirmationModalReturn => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [modalConfig, setModalConfig] = useState<{
+  modalConfig: {
     title: string;
     message: string;
     onConfirm: () => void;
     confirmText?: string;
     cancelText?: string;
     variant?: 'danger' | 'warning' | 'info';
-  } | null>(null);
+  } | null;
+  handleConfirm: () => void;
+}
+
+type ModalConfig = NonNullable<UseConfirmationModalReturn['modalConfig']>;
+
+export const useConfirmationModal = (): UseConfirmationModalReturn => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<ModalConfig | null>(null);
 
   const open = useCallback((
     title: string,
