@@ -5,7 +5,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
-export const isSupabaseMode = import.meta.env.VITE_DATA_BACKEND === 'supabase';
+export const isSupabaseMode = (import.meta.env.VITE_DATA_BACKEND as string | undefined)?.trim() === 'supabase';
 
 if (isSupabaseMode && !isSupabaseConfigured) {
   throw new Error('Supabase mode requires VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY');

@@ -22,7 +22,11 @@ import { sanitizeText } from '../utils/sanitize';
 function throwIfError<T>(
   result: { data: T | null; error: { message: string } | null },
 ): T {
-  if (result.error) throw result.error;
+  if (result.error) {
+    const err = new Error(result.error.message || 'Erro na operação com o banco de dados');
+    Object.assign(err, result.error);
+    throw err;
+  }
   if (result.data === null) throw new Error('Supabase returned no data');
   return result.data;
 }
@@ -505,7 +509,7 @@ export const supabaseApi = {
         }
         throw error;
       }
-      return this.get(created.medical_record_id);
+      return supabaseApi.prontuarios.get(created.medical_record_id);
     },
 
     async update(id: string, input: Partial<Prontuario>): Promise<Prontuario> {
@@ -542,7 +546,7 @@ export const supabaseApi = {
           .eq('clinic_id', clinicId).eq('id', id);
         if (updateResult.error) throw updateResult.error;
       }
-      return this.get(id);
+      return supabaseApi.prontuarios.get(id);
     },
 
     async delete(id: string): Promise<void> {

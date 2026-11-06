@@ -245,7 +245,7 @@ export function useTutor(id: string) {
 }
 
 export function useCreateTutor() {
-  return useMutation(api.tutors.create);
+  return useMutation((data: Omit<import('../services/apiTypes').Tutor, 'id'>) => api.tutors.create(data));
 }
 
 export function useUpdateTutor() {
@@ -255,7 +255,7 @@ export function useUpdateTutor() {
 }
 
 export function useDeleteTutor() {
-  return useMutation(api.tutors.delete);
+  return useMutation((id: string) => api.tutors.delete(id));
 }
 
 export function usePets(tutorId?: string, params?: ListParams) {
@@ -270,7 +270,7 @@ export function usePet(id: string) {
 }
 
 export function useCreatePet() {
-  return useMutation(api.pets.create);
+  return useMutation((data: Omit<import('../services/apiTypes').Pet, 'id'>) => api.pets.create(data));
 }
 
 export function useUpdatePet() {
@@ -280,7 +280,7 @@ export function useUpdatePet() {
 }
 
 export function useDeletePet() {
-  return useMutation(api.pets.delete);
+  return useMutation((id: string) => api.pets.delete(id));
 }
 
 export function useProntuarios(petId?: string, params?: ListParams) {
@@ -295,7 +295,9 @@ export function useProntuario(id: string) {
 }
 
 export function useCreateProntuario() {
-  return useMutation(api.prontuarios.create);
+  return useMutation((data: import('../services/apiTypes').CreateProntuarioPayload) =>
+    api.prontuarios.create(data)
+  );
 }
 
 export function useUpdateProntuario() {
@@ -305,7 +307,7 @@ export function useUpdateProntuario() {
 }
 
 export function useDeleteProntuario() {
-  return useMutation(api.prontuarios.delete);
+  return useMutation((id: string) => api.prontuarios.delete(id));
 }
 
 export function useDashboardAppointments() {

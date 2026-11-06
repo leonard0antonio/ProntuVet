@@ -47,11 +47,17 @@ export const ProntuarioForm: React.FC = () => {
             examFiles: Array.from(data.examFiles ?? []),
           });
           showSuccess('Prontuário salvo', 'O pet e o atendimento foram salvos');
-        } catch (error) {
-          showError(
-            'Não foi possível salvar o prontuário',
-            error instanceof Error ? error.message : 'Tente novamente.',
-          );
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : typeof error === 'object' && error !== null && 'message' in error
+              ? String((error as { message: unknown }).message)
+              : typeof error === 'string'
+              ? error
+              : 'Tente novamente.';
+
+          showError('Não foi possível salvar o prontuário', message);
         }
       };
 
