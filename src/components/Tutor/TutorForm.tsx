@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import InputMask from 'react-input-mask';
-import DOMPurify from 'dompurify';
+import { useToast } from '../../components/Toast';
+import { useCreateTutor } from '../../hooks/useApi';
 
 const tutorSchema = z.object({
   name: z.string().min(1, { message: 'Nome é obrigatório' }).max(100, { message: 'Nome não pode ter mais de 100 caracteres' }),
@@ -22,18 +23,32 @@ type TutorFormValues = z.infer<typeof tutorSchema>;
 
 export const TutorForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const { showSuccess, showError } = useToast();
+  const { mutate: createTutor, isLoading: isSubmitting } = useCreateTutor();
+
   const {
+    control,
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<TutorFormValues>({
     resolver: zodResolver(tutorSchema),
     mode: 'onSubmit',
   });
 
   const onSubmit = async (data: TutorFormValues) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    alert('Cadastro realizado com sucesso');
+    try {
+      await createTutor(data);
+      showSuccess('Tutor cadastrado com sucesso!', 'O tutor foi adicionado ao sistema');
+    } catch (error) {
+      const apiError = error as { status?: number; message?: string; errors?: Record<string, string[]> };
+      if (apiError.status === 422 && apiError.errors) {
+        // Handle validation errors - could set form errors here
+        showError('Dados inválidos', 'Verifique os campos destacados');
+      } else {
+        showError('Erro ao cadastrar tutor', 'Tente novamente mais tarde');
+      }
+    }
   };
 
   return (
@@ -74,19 +89,25 @@ export const TutorForm: React.FC = () => {
 
               <div className="form-group">
                 <label htmlFor="cpf" className="form-label form-label-required">CPF</label>
-                <InputMask
-                                  mask="000.000.000-00"
-                                  value={register('cpf')?.value || ''}
-                                  onAccept={val => {
-                                    if (val.length > 14) {
-                                      return val.slice(0, 14);
-                                    }
-                                    return val;
-                                  }}
-                                  className={`form-input ${errors.cpf ? 'error' : ''}`}
-                                  placeholder="000.000.000-00"
-                                  aria-invalid={errors.cpf ? 'true' : 'false'}
-                                  aria-describedby={errors.cpf ? 'cpf-error' : undefined}
+                <Controller
+                  name="cpf"
+                  control={control}
+                  render={({ field }) => {
+                    const { ref, ...inputProps } = field;
+                    return (
+                      <InputMask
+                        {...inputProps}
+                        inputRef={ref}
+                        id="cpf"
+                        mask="999.999.999-99"
+                        value={field.value ?? ''}
+                        className={`form-input ${errors.cpf ? 'error' : ''}`}
+                        placeholder="000.000.000-00"
+                        aria-invalid={errors.cpf ? 'true' : 'false'}
+                        aria-describedby={errors.cpf ? 'cpf-error' : undefined}
+                      />
+                    );
+                  }}
                 />
                 {errors.cpf && (
                                   <p id="cpf-error" className="form-error" role="alert">
@@ -104,19 +125,25 @@ export const TutorForm: React.FC = () => {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="phone" className="form-label form-label-required">Telefone</label>
-                <InputMask
-                                  mask="(00) 00000-0000"
-                                  value={register('phone')?.value || ''}
-                                  onAccept={val => {
-                                    if (val.length > 15) {
-                                      return val.slice(0, 15);
-                                    }
-                                    return val;
-                                  }}
-                                  className={`form-input ${errors.phone ? 'error' : ''}`}
-                                  placeholder="(00) 00000-0000"
-                                  aria-invalid={errors.phone ? 'true' : 'false'}
-                                  aria-describedby={errors.phone ? 'phone-error' : undefined}
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => {
+                    const { ref, ...inputProps } = field;
+                    return (
+                      <InputMask
+                        {...inputProps}
+                        inputRef={ref}
+                        id="phone"
+                        mask="(99) 99999-9999"
+                        value={field.value ?? ''}
+                        className={`form-input ${errors.phone ? 'error' : ''}`}
+                        placeholder="(00) 00000-0000"
+                        aria-invalid={errors.phone ? 'true' : 'false'}
+                        aria-describedby={errors.phone ? 'phone-error' : undefined}
+                      />
+                    );
+                  }}
                 />
                 {errors.phone && (
                                   <p id="phone-error" className="form-error" role="alert">
@@ -208,19 +235,25 @@ export const TutorForm: React.FC = () => {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="zip" className="form-label form-label-required">CEP</label>
-                <InputMask
-                                  mask="00000000"
-                                  value={register('zip')?.value || ''}
-                                  onAccept={val => {
-                                    if (val.length > 8) {
-                                      return val.slice(0, 8);
-                                    }
-                                    return val;
-                                  }}
-                                  className={`form-input ${errors.zip ? 'error' : ''}`}
-                                  placeholder="00000000"
-                                  aria-invalid={errors.zip ? 'true' : 'false'}
-                                  aria-describedby={errors.zip ? 'zip-error' : undefined}
+                <Controller
+                  name="zip"
+                  control={control}
+                  render={({ field }) => {
+                    const { ref, ...inputProps } = field;
+                    return (
+                      <InputMask
+                        {...inputProps}
+                        inputRef={ref}
+                        id="zip"
+                        mask="99999999"
+                        value={field.value ?? ''}
+                        className={`form-input ${errors.zip ? 'error' : ''}`}
+                        placeholder="00000000"
+                        aria-invalid={errors.zip ? 'true' : 'false'}
+                        aria-describedby={errors.zip ? 'zip-error' : undefined}
+                      />
+                    );
+                  }}
                 />
                 {errors.zip && (
                                   <p id="zip-error" className="form-error" role="alert">

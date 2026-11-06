@@ -13,8 +13,8 @@ export const useInactivityTimeout = ({
   onTimeout,
   warningTime = 60 * 1000,
 }: UseInactivityTimeoutOptions = {}) => {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isWarningShown = useRef(false);
 
   const resetTimers = useCallback(() => {

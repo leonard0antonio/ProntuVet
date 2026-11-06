@@ -147,7 +147,7 @@ const sanitizeProntuario = (prontuario: Partial<Prontuario>): Partial<Prontuario
 
 export const api = {
   auth: {
-    async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    async login(email: string, _password: string): Promise<{ user: User; token: string }> {
       await delay(1000);
       const user = mockUsers.find(u => u.email === email);
       if (!user) throw new Error('Credenciais inválidas');
