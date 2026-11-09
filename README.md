@@ -1,1 +1,115 @@
-# ProntuVet - Sistema de Prontuário Eletrônico Veterinário\n\n## Visão Geral\n\nSistema de prontuário eletrônico para clínicas veterinárias (SaaS) com foco em segurança de dados sensíveis e interface defensiva.\n\n## Tecnologias\n\n- React 18 + TypeScript\n- Vite\n- React Hook Form + Zod (validação)\n- React Router DOM\n- DOMPurify (sanitização XSS)\n- InputMask React (máscaras de entrada)\n\n## Estrutura do Projeto\n\n```\nsrc/\n├── components/\n│   ├── Login/           # Tela de login seguro\n│   ├── Tutor/           # Formulário de cadastro de tutor\n│   ├── Prontuario/      # Formulário de prontuário médico\n│   ├── Dashboard/       # Dashboard com agenda, internados, alertas\n│   ├── ErrorBoundary/   # Error Boundary para tratamento de erros\n│   ├── Modal/           # Modais de confirmação e aviso de inatividade\n│   ├── LoadingSpinner.tsx\n│   ├── GlobalLoading.tsx\n│   ├── SecureInput.tsx\n│   └── SanitizedText.tsx\n├── hooks/\n│   ├── useInactivityTimeout.ts    # Hook para timeout de inatividade\n│   ├── useConfirmationModal.ts    # Hook para modais de confirmação\n│   └── useInactivityWarning.ts    # Hook para aviso de inatividade\n├── services/\n│   └── api.ts           # API mock com sanitização\n├── utils/\n│   └── sanitize.ts      # Utilitários de sanitização\n├── App.tsx\n├── main.tsx\n├── index.css\n└── App.css\n```\n\n## Funcionalidades de Segurança Implementadas\n\n### 1. Validação e Higienização de Entradas\n- **React Hook Form + Zod**: Validação de schema rigorosa\n- **Tipagem de Inputs**: `type=\"email\"`, `type=\"number\"`, `type=\"tel\"`, `type=\"password\"`, `type=\"date\"`\n- **Campos Obrigatórios**: Bloqueio de submissão com alertas visuais vermelhos\n- **Limite de Caracteres**: `maxLength` em todos os campos (ex: 2000 chars no prontuário)\n- **Máscaras de Entrada**: CPF (000.000.000-00), Telefone ((00) 00000-0000), CEP (00000000)\n- **Proteção XSS**: DOMPurify para sanitização automática\n\n### 2. Proteção da Informação e Sessão\n- **Máscara de Senha**: Toggle show/hide com auto-hide no blur\n- **Timeout de Inatividade**: 10 min (parametrizável) com modal de aviso 1 min antes\n- **Pop-ups de Confirmação**: Modal obrigatório para ações destrutivas/críticas\n- **Desabilitar Botões**: Loading state + disabled após clique\n\n### 3. Resiliência e Feedback (Defensive UI)\n- **Skeleton Loaders**: Para carregamento inicial de listas\n- **Spinners Globais**: Para ações assíncronas\n- **Error Boundaries**: Tela amigável sem exposição de stack traces\n- **CSP Rigoroso**: Meta tags no HTML bloqueando inline scripts, fontes/imagens não autorizadas\n\n## Como Executar\n\n```bash\n# Instalar dependências\nnpm install\n\n# Desenvolvimento\nnpm run dev\n\n# Build de produção\nnpm run build\n\n# Preview do build\nnpm run preview\n```\n\n## Configuração de Segurança (CSP)\n\nO `index.html` inclui Content Security Policy rigoroso:\n\n```html\n<meta http-equiv=\"Content-Security-Policy\" content=\"\n  default-src 'self';\n  script-src 'self';\n  style-src 'self' 'unsafe-inline';\n  img-src 'self' data: https:;\n  font-src 'self' data:;\n  connect-src 'self' https://api.example.com;\n  frame-ancestors 'none';\n  base-uri 'self';\n  form-action 'self';\n\" />\n```\n\n## Próximos Passos\n\n1. Implementar testes unitários (Vitest + React Testing Library)\n2. Adicionar Storybook para documentação de componentes\n3. Implementar autenticação real com JWT + refresh tokens\n4. Adicionar logs de auditoria para ações sensíveis\n5. Implementar criptografia client-side para dados ultra-sensíveis\n6. Adicionar PWA para uso offline\n7. Implementar internacionalização (i18n)\n\n## Licença\n\nProprietário - ProntuVet\n
+<h1 align="center">
+  🐾 ProntuVet
+</h1>
+
+<p align="center">
+  <em>Sistema moderno e intuitivo para gestão de clínicas veterinárias e prontuários médicos.</em>
+</p>
+
+<p align="center">
+  <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/leonard0antonio/ProntuVet">
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/leonard0antonio/ProntuVet">
+  <a href="https://github.com/leonard0antonio/ProntuVet/commits/main">
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/leonard0antonio/ProntuVet">
+  </a>
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-brightgreen">
+</p>
+
+<p align="center">
+  <a href="#-sobre-o-projeto">Sobre</a> •
+  <a href="#-funcionalidades">Funcionalidades</a> •
+  <a href="#-tecnologias">Tecnologias</a> •
+  <a href="#-como-executar">Como executar</a> •
+  <a href="#-contribuição">Contribuição</a> •
+  <a href="#-licença">Licença</a>
+</p>
+
+---
+
+## 💻 Sobre o projeto
+
+O **ProntuVet** foi desenvolvido para simplificar e modernizar o dia a dia de clínicas veterinárias. Através de uma interface amigável, médicos veterinários e recepcionistas podem gerenciar cadastros de pacientes, históricos médicos (prontuários), agendamentos e rotinas administrativas de forma centralizada e segura.
+
+## ⚙️ Funcionalidades
+
+- **Gestão de Pacientes e Tutores:** Cadastro completo de pets e seus respectivos donos.
+- **Prontuário Eletrônico:** Registro de consultas, exames, vacinas e receituários.
+- **Agendamento Inteligente:** Calendário interativo para marcação de consultas e retornos.
+- **Controle Financeiro:** Acompanhamento de pagamentos, faturamento e fluxo de caixa. *(Remova se não houver)*
+- **Dashboard Analítico:** Visão geral da clínica com métricas de atendimentos.
+
+## 🛠 Tecnologias
+
+As seguintes ferramentas foram usadas na construção do projeto:
+
+**Frontend:**
+- [React](https://pt-br.reactjs.org/) / [Next.js](https://nextjs.org/) *(Ajuste conforme o seu)*
+- [Tailwind CSS](https://tailwindcss.com/) / [Styled-Components](https://styled-components.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+
+**Backend:**
+- [Node.js](https://nodejs.org/en/)
+- [Express](https://expressjs.com/pt-br/) / [NestJS](https://nestjs.com/) *(Ajuste conforme o seu)*
+- [PostgreSQL](https://www.postgresql.org/) / [MongoDB](https://www.mongodb.com/)
+- [Prisma](https://www.prisma.io/)
+
+## 🚀 Como executar
+
+Pré-requisitos: Você precisará ter o [Node.js](https://nodejs.org/en/) e o [Git](https://git-scm.com) instalados na sua máquina.
+
+### 1. Clone este repositório
+```bash
+git clone [https://github.com/leonard0antonio/ProntuVet.git](https://github.com/leonard0antonio/ProntuVet.git)
+
+```
+
+### 2. Rodando o Backend
+
+```bash
+# Entre na pasta do backend
+cd ProntuVet/backend
+
+# Instale as dependências
+npm install
+
+# Crie um arquivo .env com base no .env.example e preencha suas variáveis
+cp .env.example .env
+
+# Execute as migrations do banco de dados (se houver)
+npm run prisma migrate dev
+
+# Inicie o servidor
+npm run dev
+
+```
+
+> O servidor iniciará na porta: 3333
+
+### 3. Rodando o Frontend
+
+```bash
+# Entre na pasta do frontend
+cd ../frontend
+
+# Instale as dependências
+npm install
+
+# Inicie a aplicação
+npm run dev
+
+```
+
+> A aplicação estará disponível no seu browser em: http://localhost:3000
+
+## 🤝 Contribuição
+
+Contribuições são super bem-vindas! Siga os passos abaixo para contribuir:
+
+1. Faça um **fork** do projeto.
+2. Crie uma nova branch com as suas alterações: `git checkout -b my-feature`
+3. Salve as alterações e crie uma mensagem de commit contando o que você fez: `git commit -m "feature: Minha nova feature"`
+4. Envie as suas alterações: `git push origin my-feature`
+
+---
+
+Feito com 💙 por [Leonardo Antonio](https://github.com/leonard0antonio)
