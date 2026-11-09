@@ -113,5 +113,3 @@ Contribuições são super bem-vindas! Siga os passos abaixo para contribuir:
 ---
 
 Feito com 💙 por [Leonardo Antonio](https://github.com/leonard0antonio)
-
-```
