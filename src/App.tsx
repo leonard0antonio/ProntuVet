@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, Link, Outlet } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { ConfirmationModalProvider } from './components/Modal/ConfirmationModalProvider';
 import { ToastProvider } from './components/Toast';
@@ -7,6 +7,7 @@ import { GlobalLoading } from './components/GlobalLoading';
 import { useInactivityTimeout } from './hooks/useInactivityTimeout';
 import { useInactivityWarning } from './hooks/useInactivityWarning';
 import { Login } from './components/Login/Login';
+import { Landing } from './components/Landing/Landing';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { TutorForm } from './components/Tutor/TutorForm';
 import { ProntuarioForm } from './components/Prontuario/ProntuarioForm';
@@ -61,7 +62,7 @@ const AppContent: React.FC = () => {
   const userInitials = userName.split(' ').map(name => name[0]).join('').toUpperCase() || 'U';
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: (
+    { path: '/app', label: 'Dashboard', icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" />
         <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -69,7 +70,7 @@ const AppContent: React.FC = () => {
         <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     )},
-    { path: '/tutores', label: 'Tutores', icon: (
+    { path: '/app/tutores', label: 'Tutores', icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
         <circle cx="9" cy="7" r="4" />
@@ -77,7 +78,7 @@ const AppContent: React.FC = () => {
         <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     )},
-    { path: '/prontuarios', label: 'Prontuários', icon: (
+    { path: '/app/prontuarios', label: 'Prontuários', icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
@@ -100,16 +101,17 @@ const AppContent: React.FC = () => {
         timeRemaining={timeRemaining}
       />
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route
-          path="/*"
+          path="/app"
           element={
             <ProtectedRoute>
               <div className="app-layout">
                 <header className="app-header">
                   <div className="app-header-content">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                      <a href="/" className="app-logo" aria-label="ProntuVet - Início">
+                      <Link to="/app" className="app-logo" aria-label="ProntuVet - Dashboard">
                         <div className="app-logo-icon">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -121,20 +123,20 @@ const AppContent: React.FC = () => {
                           <span className="app-logo-title">ProntuVet</span>
                           <span className="app-logo-subtitle">Prontuário Eletrônico</span>
                         </div>
-                      </a>
+                      </Link>
                       <nav className="app-header-nav" aria-label="Navegação principal">
                         <ul className="app-nav-list" role="menubar">
                           {navItems.map(item => (
                             <li key={item.path} className="app-nav-item" role="none">
-                              <a
-                                href={item.path}
+                              <Link
+                                to={item.path}
                                 className={`app-nav-link ${location.pathname === item.path ? 'active' : ''}`}
                                 role="menuitem"
                                 aria-current={location.pathname === item.path ? 'page' : undefined}
                               >
                                 {item.icon}
                                 <span>{item.label}</span>
-                              </a>
+                              </Link>
                             </li>
                           ))}
                         </ul>
@@ -166,16 +168,19 @@ const AppContent: React.FC = () => {
                   </div>
                 </header>
                 <main className="app-main">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/tutores" element={<TutorForm />} />
-                    <Route path="/prontuarios" element={<ProntuarioForm />} />
-                  </Routes>
+                  <Outlet />
                 </main>
               </div>
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="tutores" element={<TutorForm />} />
+          <Route path="prontuarios" element={<ProntuarioForm />} />
+        </Route>
+        <Route path="/tutores" element={<Navigate to="/app/tutores" replace />} />
+        <Route path="/prontuarios" element={<Navigate to="/app/prontuarios" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

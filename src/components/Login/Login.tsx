@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '../../components/Toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../Back-end/src/features/auth';
 
 const loginSchema = z.object({
@@ -25,7 +25,8 @@ type LoginFormValues = {
 
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [isSignUp, setIsSignUp] = useState(searchParams.get('cadastro') === '1');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showSuccess, showError, showInfo } = useToast();
@@ -80,7 +81,7 @@ export const Login: React.FC = () => {
         await signIn(result.data.email, result.data.password);
         showSuccess('Login realizado com sucesso!', 'Bem-vindo ao ProntuVet');
       }
-      navigate('/');
+      navigate('/app');
     } catch (error) {
       if (error instanceof Error && error.message === 'Invalid login credentials') {
         showError('Credenciais inválidas', 'Verifique seu email e senha');
